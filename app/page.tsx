@@ -8,7 +8,8 @@ const segments = [
     duration: "8h 50m",
     start: "2300",
     end: "0750",
-    suffix: "+1",
+    startDate: "10 Sep",
+    endDate: "11 Sep",
     weight: 8.83,
   },
   {
@@ -20,7 +21,8 @@ const segments = [
     duration: "2h",
     start: "1000",
     end: "1200",
-    suffix: "",
+    startDate: "11 Sep",
+    endDate: "11 Sep",
     weight: 2,
   },
   {
@@ -30,7 +32,6 @@ const segments = [
     duration: "1h",
     start: "1200",
     end: "1300",
-    suffix: "",
     weight: 1,
   },
   {
@@ -40,7 +41,6 @@ const segments = [
     duration: "8h",
     start: "2200",
     end: "0600",
-    suffix: "",
     weight: 8,
   },
 ];
@@ -72,19 +72,19 @@ export default function Home() {
               <article
                 key={`${segment.title}-${segment.start}`}
                 className={`segment segment--${segment.kind}`}
-                style={{ flexGrow: segment.weight, flexBasis: "74px" }}
+                style={{ flexGrow: segment.weight }}
                 role="listitem"
               >
                 {segment.kind === "travel" ? (
                   <div className="travel-segment">
-                    <div className="segment__headline">
+                    <div className="travel-segment__identity">
                       <strong>{segment.title}</strong>
                       <span>{segment.duration}</span>
                     </div>
 
                     <div
                       className="travel-route"
-                      aria-label={`${segment.from} ${segment.start} to ${segment.to} ${segment.end}${segment.suffix ? ` ${segment.suffix}` : ""}`}
+                      aria-label={`${segment.from} ${segment.start} ${segment.startDate} to ${segment.to} ${segment.end} ${segment.endDate}`}
                     >
                       <div className="travel-route__places">
                         <span>{segment.from}</span>
@@ -92,20 +92,23 @@ export default function Home() {
                       </div>
 
                       <div className="travel-route__graphic" aria-hidden="true">
-                        <svg viewBox="0 0 100 34" preserveAspectRatio="none">
-                          <path d="M7 28 Q50 2 93 28" />
-                          <circle cx="7" cy="28" r="3" />
-                          <circle cx="93" cy="28" r="3" />
+                        <svg viewBox="0 0 100 32" preserveAspectRatio="none">
+                          <path d="M6 25 Q50 3 94 25" />
+                          <circle cx="6" cy="25" r="3" />
+                          <circle cx="94" cy="25" r="3" />
                         </svg>
                         <span className="travel-route__mode">{segment.icon}</span>
                       </div>
 
-                      <div className="travel-route__times">
-                        <span>{segment.start}</span>
-                        <span>
-                          {segment.end}
-                          {segment.suffix ? <small>{segment.suffix}</small> : null}
-                        </span>
+                      <div className="travel-route__schedule">
+                        <div>
+                          <strong>{segment.start}</strong>
+                          <span>{segment.startDate}</span>
+                        </div>
+                        <div>
+                          <strong>{segment.end}</strong>
+                          <span>{segment.endDate}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
