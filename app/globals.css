@@ -11,7 +11,8 @@
   --rest: #ede9fe;
   --rest-strong: #6d28d9;
   --shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
-  --segment-min: 74px;
+  --segment-min: 58px;
+  --travel-min: 112px;
 }
 
 * {
@@ -156,8 +157,9 @@ button {
 }
 
 .segment {
+  flex-basis: var(--segment-min);
   min-width: var(--segment-min);
-  min-height: 158px;
+  min-height: 176px;
   padding: 11px 9px;
   border-radius: 16px;
   border: 1px solid rgba(15, 23, 42, 0.08);
@@ -167,6 +169,8 @@ button {
 }
 
 .segment--travel {
+  flex-basis: var(--travel-min);
+  min-width: var(--travel-min);
   background: var(--travel);
 }
 
@@ -187,62 +191,57 @@ button {
 
 .travel-segment {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  justify-content: center;
 }
 
-.segment__headline {
+.travel-segment__identity {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
   min-width: 0;
+  text-align: center;
 }
 
-.segment__headline strong {
-  min-width: 0;
+.travel-segment__identity strong {
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.73rem;
-  line-height: 1.1;
+  font-size: 0.74rem;
+  line-height: 1.05;
 }
 
-.segment__headline > span {
-  flex: 0 0 auto;
-  font-size: 0.7rem;
+.travel-segment__identity span {
+  font-size: 0.77rem;
   font-weight: 800;
   white-space: nowrap;
 }
 
 .travel-route {
-  margin-top: 13px;
-  flex: 1;
+  margin-top: 16px;
   display: grid;
-  grid-template-rows: auto 48px auto;
+  grid-template-rows: auto 40px auto;
   align-content: center;
 }
 
-.travel-route__places,
-.travel-route__times {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 .travel-route__places {
-  font-size: 0.66rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  gap: 8px;
+  font-size: 0.69rem;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
 
-.travel-route__places span,
-.travel-route__times span {
-  min-width: 0;
+.travel-route__places span:first-child {
+  text-align: left;
 }
 
-.travel-route__places span:last-child,
-.travel-route__times span:last-child {
+.travel-route__places span:last-child {
   text-align: right;
 }
 
@@ -277,34 +276,58 @@ button {
 .travel-route__mode {
   position: absolute;
   left: 50%;
-  top: 8px;
+  top: 4px;
   transform: translateX(-50%);
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 2px;
   border-radius: 999px;
   background: var(--travel);
   color: var(--travel-strong);
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1;
 }
 
-.travel-route__times {
-  margin-top: 1px;
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+.travel-route__schedule {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
-.travel-route__times small {
-  margin-left: 2px;
-  font-size: 0.54rem;
-  color: var(--muted);
+.travel-route__schedule > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.travel-route__schedule > div:first-child {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.travel-route__schedule > div:last-child {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.travel-route__schedule strong {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.travel-route__schedule span {
+  color: #516078;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .standard-segment {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -392,7 +415,8 @@ button {
 
 @media (max-width: 360px) {
   :root {
-    --segment-min: 70px;
+    --segment-min: 54px;
+    --travel-min: 106px;
   }
 
   .day-card__header {
@@ -404,7 +428,7 @@ button {
   }
 
   .segment {
-    min-height: 154px;
+    min-height: 172px;
   }
 }
 
