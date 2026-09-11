@@ -1,14 +1,17 @@
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
-import { ActionGlyph, AppHeader, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
+import { ActionGlyph, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
 
 export default function TodayPage() {
   return (
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader showBack={false} action="menu" />
+          <header className={parity.simpleHeader}>
+            <Link className={styles.wordmark} href="/">Ullalu</Link>
+            <button className={styles.menuButton} type="button" aria-label="More options">•••</button>
+          </header>
 
           <div className={styles.liveHeader}>
             <div>
@@ -22,7 +25,7 @@ export default function TodayPage() {
           </div>
 
           <section className={styles.liveCard}>
-            <div className={styles.liveHero}>
+            <div className={`${styles.liveHero} ${parity.liveHeroRefined}`}>
               <span className={styles.liveBadge}>LIVE TRIP</span>
               <h2>Ueno Museum</h2>
               <span className={styles.liveTime}>14:00 – 16:00</span>
