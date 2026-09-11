@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./expansion-fix.css";
+import "./day-note.css";
 
 export const metadata: Metadata = {
   title: "Ullalu",
