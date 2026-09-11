@@ -1,0 +1,49 @@
+.day-note-row {
+  width: 100%;
+  min-height: 52px;
+  padding: 13px 17px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.day-note-row__text {
+  min-width: 0;
+  overflow: hidden;
+  color: #46566d;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-note-row__text--placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.day-note-row__chevron {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: #28384f;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.day-note-row:hover {
+  background: #fbfcfe;
+}
+
+.day-note-row:focus-visible {
+  outline: 2px solid var(--travel-strong);
+  outline-offset: -2px;
+}
