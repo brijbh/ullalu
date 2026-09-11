@@ -1,13 +1,12 @@
-import Link from "next/link";
 import styles from "../../../../JourneyFlow.module.css";
-import { AppHeader, Signature, sampleSignature } from "../../../../components/JourneyUI";
+import { AppHeader, Signature, SuggestionIcon, sampleSignature } from "../../../../components/JourneyUI";
 
 const suggestions = [
-  ["⌖", "Place / Activity", "Add a place to visit"],
-  ["▤", "Transport", "Add transport between places"],
-  ["▣", "Reservation", "Add a booking (restaurant, etc.)"],
-  ["▭", "Hotel / Rest", "Add hotel or rest time"],
-  ["◷", "Buffer", "Add free time or buffer"],
+  ["place", "Place / Activity", "Add a place to visit"],
+  ["transport", "Transport", "Add transport between places"],
+  ["reservation", "Reservation", "Add a booking (restaurant, etc.)"],
+  ["rest", "Hotel / Rest", "Add hotel or rest time"],
+  ["buffer", "Buffer", "Add free time or buffer"],
 ] as const;
 
 export default function DayComposerPage() {
@@ -38,22 +37,22 @@ export default function DayComposerPage() {
               <span>BLR → NRT (SQ 35)</span>
               <span>01:10 – 09:30 (6h 50m)</span>
             </div>
-            <span className={styles.moreDots} aria-hidden="true">•••</span>
+            <button className={styles.segmentMenu} type="button" aria-label="Travel segment options">•••</button>
           </article>
 
           <button className={styles.secondaryButton} type="button"><span aria-hidden="true">＋</span> Add to this day</button>
 
           <p className={styles.sectionLabel}>SUGGESTIONS</p>
           <div className={styles.suggestionList}>
-            {suggestions.map(([icon, title, detail]) => (
-              <div className={styles.suggestion} key={title}>
-                <span className={styles.suggestionIcon} aria-hidden="true">{icon}</span>
-                <div>
+            {suggestions.map(([kind, title, detail]) => (
+              <button className={styles.suggestion} type="button" key={title}>
+                <span className={styles.suggestionIcon}><SuggestionIcon kind={kind} /></span>
+                <span className={styles.suggestionCopy}>
                   <strong>{title}</strong>
                   <span>{detail}</span>
-                </div>
+                </span>
                 <span className={styles.suggestionArrow} aria-hidden="true">›</span>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -61,8 +60,6 @@ export default function DayComposerPage() {
             <span>Free time today</span>
             <strong>2h 30m</strong>
           </div>
-
-          <Link className={styles.primaryButton} href="/trip/japan-2026">View trip overview <span aria-hidden="true">→</span></Link>
         </div>
       </section>
     </main>
