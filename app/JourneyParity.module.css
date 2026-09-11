@@ -1,0 +1,204 @@
+.headerSpacer {
+  width: 34px;
+  height: 34px;
+}
+
+.tripArt {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.artInk,
+.artSoft,
+.artWater,
+.artMountain,
+.artSnow,
+.artAccent,
+.artGreen {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.artInk { stroke: #607487; stroke-width: 1.45; }
+.artSoft { stroke: #8ea0ad; stroke-width: 1.2; }
+.artWater { stroke: #9bc9d8; stroke-width: 1.15; }
+.artMountain { stroke: #7899aa; stroke-width: 1.45; }
+.artSnow { stroke: #dce9ed; stroke-width: 2.1; }
+.artAccent { stroke: #c96f68; stroke-width: 1.45; }
+.artGreen { stroke: #78a38c; stroke-width: 1.35; }
+
+.actionSvg {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+.tripHeadIllustrated {
+  position: relative;
+  min-height: 92px;
+  padding-right: 122px;
+  align-items: flex-start;
+}
+
+.tripHeadArt {
+  position: absolute;
+  right: -4px;
+  top: -6px;
+  width: 125px;
+  height: 88px;
+  opacity: .95;
+}
+
+.rowChevron {
+  color: #173f6d;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.unplannedBar {
+  flex: 1;
+  background: #d9dde1;
+}
+
+.libraryTitle {
+  margin-top: 11px;
+}
+
+.libraryTabs {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 16px;
+}
+
+.libraryCopy {
+  min-width: 0;
+}
+
+.libraryCopy small {
+  display: block;
+  margin-top: 6px;
+  color: #6b7988;
+  font-size: .57rem;
+}
+
+.libraryArt {
+  width: 108px;
+  max-height: 72px;
+  align-self: center;
+  opacity: .95;
+}
+
+.completedLibraryCard {
+  color: inherit;
+  text-decoration: none;
+}
+
+.completedActionsRefined {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.completedActionsRefined span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.completedActionsRefined svg {
+  width: 13px;
+  height: 13px;
+}
+
+.weatherIcon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.weatherStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.weatherStack strong {
+  font-size: .78rem;
+}
+
+.weatherStack small {
+  color: #49627a;
+  font-size: .56rem;
+}
+
+.liveHeroArt {
+  position: absolute;
+  right: -10px;
+  bottom: 3px;
+  z-index: 1;
+  width: 180px;
+  opacity: .84;
+}
+
+.nextIconRefine {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  color: #153f6c;
+}
+
+.nextIconRefine svg {
+  width: 22px;
+  height: 22px;
+}
+
+.planRowCopy {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.planRowCopy svg {
+  width: 18px;
+  height: 18px;
+}
+
+.completedHeroArtSvg {
+  position: absolute;
+  right: -2px;
+  top: -11px;
+  width: 124px;
+  height: 89px;
+  opacity: .95;
+}
+
+.actionIcon {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  color: #173f6c;
+}
+
+.actionIcon svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 360px) {
+  .tripHeadIllustrated {
+    padding-right: 105px;
+  }
+
+  .tripHeadArt,
+  .completedHeroArtSvg {
+    width: 108px;
+  }
+
+  .libraryArt {
+    width: 92px;
+  }
+}
