@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
+import parity from "../JourneyParity.module.css";
 import { ActionGlyph, AppHeader, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
 
 const planning = [
@@ -19,12 +20,12 @@ export default function TripsPage() {
         <div className={styles.content}>
           <AppHeader showBack={false} action="search" />
 
-          <div className={`${styles.titleBlock} ${styles.libraryTitle}`}>
+          <div className={`${styles.titleBlock} ${parity.libraryTitle}`}>
             <h1>My Trips</h1>
             <p>All your journeys in one place.</p>
           </div>
 
-          <div className={`${styles.tabs} ${styles.libraryTabs}`}>
+          <div className={`${styles.tabs} ${parity.libraryTabs}`}>
             <span className={`${styles.tab} ${styles.tabActive}`}>Planning 2</span>
             <span className={styles.tab}>Upcoming 2</span>
             <span className={styles.tab}>Completed 3</span>
@@ -34,13 +35,13 @@ export default function TripsPage() {
             <h2>Planning</h2>
             {planning.map(([name, date, progress, art]) => (
               <article className={styles.libraryCard} key={name}>
-                <div className={styles.libraryCopy}>
+                <div className={parity.libraryCopy}>
                   <strong>{name}</strong>
                   <span>{date}</span>
                   <Signature segments={sampleSignature.slice(0, 4)} />
                   <small>{progress}</small>
                 </div>
-                <TripArt kind={art} className={styles.libraryArt} />
+                <TripArt kind={art} className={parity.libraryArt} />
               </article>
             ))}
           </section>
@@ -49,26 +50,26 @@ export default function TripsPage() {
             <h2>Upcoming</h2>
             {upcoming.map(([name, date, art]) => (
               <article className={styles.libraryCard} key={name}>
-                <div className={styles.libraryCopy}>
+                <div className={parity.libraryCopy}>
                   <strong>{name}</strong>
                   <span>{date}</span>
                   <Signature segments={sampleSignature.slice(0, 5)} />
                 </div>
-                <TripArt kind={art} className={styles.libraryArt} />
+                <TripArt kind={art} className={parity.libraryArt} />
               </article>
             ))}
           </section>
 
           <section className={styles.tripListSection}>
             <h2>Completed</h2>
-            <Link href="/trip/thailand-2025" className={`${styles.libraryCard} ${styles.completedLibraryCard}`}>
-              <div className={styles.libraryCopy}>
+            <Link href="/trip/thailand-2025" className={`${styles.libraryCard} ${parity.completedLibraryCard}`}>
+              <div className={parity.libraryCopy}>
                 <strong>Thailand 2025</strong>
                 <span>12 Jan – 20 Jan 2025</span>
                 <Signature segments={sampleSignature} />
               </div>
-              <TripArt kind="thailand" className={styles.libraryArt} />
-              <div className={styles.completedActions}>
+              <TripArt kind="thailand" className={parity.libraryArt} />
+              <div className={`${styles.completedActions} ${parity.completedActionsRefined}`}>
                 <span><ActionGlyph kind="question" />3 questions</span>
                 <span><ActionGlyph kind="share" />Share</span>
                 <span><ActionGlyph kind="reuse" />Reuse</span>
