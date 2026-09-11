@@ -37,7 +37,12 @@ export default function DayComposerPage() {
               <span>BLR → NRT (SQ 35)</span>
               <span>01:10 – 09:30 (6h 50m)</span>
             </div>
-            <button className={styles.segmentMenu} type="button" aria-label="Travel segment options">•••</button>
+            <button
+              className={styles.moreDots}
+              style={{ border: 0, padding: 0, background: "transparent", cursor: "pointer" }}
+              type="button"
+              aria-label="Travel segment options"
+            >•••</button>
           </article>
 
           <button className={styles.secondaryButton} type="button"><span aria-hidden="true">＋</span> Add to this day</button>
@@ -45,14 +50,14 @@ export default function DayComposerPage() {
           <p className={styles.sectionLabel}>SUGGESTIONS</p>
           <div className={styles.suggestionList}>
             {suggestions.map(([kind, title, detail]) => (
-              <button className={styles.suggestion} type="button" key={title}>
-                <span className={styles.suggestionIcon}><SuggestionIcon kind={kind} /></span>
-                <span className={styles.suggestionCopy}>
+              <div className={styles.suggestion} key={title}>
+                <div className={styles.suggestionIcon}><SuggestionIcon kind={kind} /></div>
+                <div>
                   <strong>{title}</strong>
                   <span>{detail}</span>
-                </span>
-                <span className={styles.suggestionArrow} aria-hidden="true">›</span>
-              </button>
+                </div>
+                <b className={styles.suggestionArrow} aria-hidden="true">›</b>
+              </div>
             ))}
           </div>
 
