@@ -1,7 +1,7 @@
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
-import { ActionGlyph, AppHeader, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
+import { ActionGlyph, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
 
 const planning = [
   ["Europe Summer", "Jun 2027", "3 of 14 days planned", "europe"],
@@ -18,7 +18,10 @@ export default function TripsPage() {
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader showBack={false} action="search" />
+          <header className={parity.simpleHeader}>
+            <Link className={styles.wordmark} href="/">Ullalu</Link>
+            <button className={styles.menuButton} type="button" aria-label="Search">⌕</button>
+          </header>
 
           <div className={`${styles.titleBlock} ${parity.libraryTitle}`}>
             <h1>My Trips</h1>
