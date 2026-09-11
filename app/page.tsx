@@ -186,10 +186,11 @@ const timelineItems: TimelineItem[] = [
   },
 ];
 
+const dayNote = "Immigration may take time.";
+
 export default function Home() {
   const [expanded, setExpanded] = useState(false);
   const currentRef = useRef<HTMLElement | null>(null);
-  const stripRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     currentRef.current?.scrollIntoView({
@@ -198,10 +199,6 @@ export default function Home() {
       inline: "center",
     });
   }, []);
-
-  const scrollStrip = (direction: -1 | 1) => {
-    stripRef.current?.scrollBy({ left: direction * 170, behavior: "smooth" });
-  };
 
   return (
     <main className="page-shell">
@@ -248,7 +245,6 @@ export default function Home() {
         {!expanded ? (
           <>
             <section
-              ref={stripRef}
               className="focus-strip"
               aria-label="Scrollable itinerary around the current activity"
               onClick={(event) => event.stopPropagation()}
@@ -282,19 +278,11 @@ export default function Home() {
               </div>
             </section>
 
-            <div className="scroll-controls" onClick={(event) => event.stopPropagation()}>
-              <button type="button" aria-label="Scroll itinerary left" onClick={() => scrollStrip(-1)}>‹</button>
-              <span>Swipe or scroll through the day</span>
-              <button type="button" aria-label="Scroll itinerary right" onClick={() => scrollStrip(1)}>›</button>
-            </div>
-
-            <button className="day-insight" type="button" onClick={() => setExpanded(true)}>
-              <span className="day-insight__icon" aria-hidden="true">✈</span>
-              <div>
-                <strong>On SQ 35 · BLR → SIN</strong>
-                <span>Next: 2h 15m layover at Changi</span>
-              </div>
-              <span className="expand-button" aria-hidden="true">⌄</span>
+            <button className="day-note-row" type="button" onClick={() => setExpanded(true)}>
+              <span className={dayNote ? "day-note-row__text" : "day-note-row__text day-note-row__text--placeholder"}>
+                {dayNote || "Add a note for this day"}
+              </span>
+              <span className="day-note-row__chevron" aria-hidden="true">⌄</span>
             </button>
           </>
         ) : (
