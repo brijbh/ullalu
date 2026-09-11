@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
+import parity from "../JourneyParity.module.css";
 import { ActionGlyph, AppHeader, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
 
 export default function TodayPage() {
@@ -15,8 +16,8 @@ export default function TodayPage() {
               <p>Day 4 · Fri, 2 Oct 2026</p>
             </div>
             <div className={styles.weather}>
-              <span className={styles.weatherIcon} aria-hidden="true">☀</span>
-              <span><strong>22°C</strong><small>Tokyo</small></span>
+              <span className={parity.weatherIcon} aria-hidden="true">☀</span>
+              <span className={parity.weatherStack}><strong>22°C</strong><small>Tokyo</small></span>
             </div>
           </div>
 
@@ -26,7 +27,7 @@ export default function TodayPage() {
               <h2>Ueno Museum</h2>
               <span className={styles.liveTime}>14:00 – 16:00</span>
               <p>Explore art, history and a quieter side of Tokyo.</p>
-              <TripArt kind="museum" className={styles.liveHeroArt} />
+              <TripArt kind="museum" className={parity.liveHeroArt} />
             </div>
 
             <div className={styles.nowBlock}>
@@ -41,17 +42,17 @@ export default function TodayPage() {
 
             <div className={styles.nextRow}>
               <strong>Next</strong>
-              <span className={styles.nextIcon}><ActionGlyph kind="walk" /></span>
+              <span className={parity.nextIconRefine}><ActionGlyph kind="walk" /></span>
               <div className={styles.nextCopy}>
                 <strong>Walk to Ueno Park</strong>
                 <span>16:15 – 17:00</span>
               </div>
-              <span className={styles.rowChevron} aria-hidden="true">›</span>
+              <span className={parity.rowChevron} aria-hidden="true">›</span>
             </div>
 
             <Link href="/trip/japan-2026/day/1" className={styles.planRow}>
-              <span className={styles.planRowCopy}><ActionGlyph kind="list" />View today&apos;s plan</span>
-              <span className={styles.rowChevron} aria-hidden="true">›</span>
+              <span className={parity.planRowCopy}><ActionGlyph kind="list" />View today&apos;s plan</span>
+              <span className={parity.rowChevron} aria-hidden="true">›</span>
             </Link>
           </section>
         </div>
