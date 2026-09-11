@@ -27,7 +27,10 @@ export default function StorageChoicePage() {
             <div className={styles.storageOption}>
               <span className={styles.storageIcon} aria-hidden="true">☁</span>
               <div className={styles.storageCopy}>
-                <strong>Ullalu Cloud <span className={styles.paidBadge}>PAID</span></strong>
+                <strong>
+                  Ullalu Cloud
+                  <span className={styles.paidBadge} style={{ display: "inline-flex", marginTop: 0 }}>PAID</span>
+                </strong>
                 <span>Save to Ullalu Cloud</span>
               </div>
               <span className={styles.radio} aria-label="Ullalu Cloud not selected" />
