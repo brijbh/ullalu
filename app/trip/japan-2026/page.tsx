@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "../../JourneyFlow.module.css";
+import parity from "../../JourneyParity.module.css";
 import { AppHeader, Signature, TripArt, sampleSignature } from "../../components/JourneyUI";
 
 const days = [
@@ -18,13 +19,13 @@ export default function TripOverviewPage() {
         <div className={styles.content}>
           <AppHeader backHref="/trip/japan-2026/day/1" menu />
 
-          <div className={`${styles.tripHead} ${styles.tripHeadIllustrated}`}>
+          <div className={`${styles.tripHead} ${parity.tripHeadIllustrated}`}>
             <div>
               <h1>Japan 2026</h1>
               <p>29 Sep – 12 Oct 2026</p>
               <p>Tokyo · Kyoto · Osaka</p>
             </div>
-            <TripArt kind="japan" className={styles.tripHeadArt} />
+            <TripArt kind="japan" className={parity.tripHeadArt} />
           </div>
 
           <div className={styles.overviewStats}>
@@ -34,20 +35,20 @@ export default function TripOverviewPage() {
 
           <div className={styles.daysList}>
             {days.map(([day, date, route, segments]) => (
-              <Link href="/trip/japan-2026/day/1" className={styles.dayRow} key={day}>
+              <Link href="/trip/japan-2026/day/1" className={styles.dayRow} key={day} style={{ textDecoration: "none", color: "inherit" }}>
                 <div className={styles.dayMeta}><strong>{day}</strong><span>{date}</span></div>
                 <div className={styles.dayRoute}><Signature segments={[...segments]} /><strong>{route}</strong></div>
-                <span className={styles.rowChevron} aria-hidden="true">›</span>
+                <span className={parity.rowChevron} aria-hidden="true">›</span>
               </Link>
             ))}
 
             <div className={styles.dayRow}>
               <div className={styles.dayMeta}><strong>Day 7</strong><span>Mon, 5 Oct</span></div>
               <div className={`${styles.dayRoute} ${styles.dayRouteMuted}`}>
-                <div className={styles.signature}><span className={styles.unplannedBar} /></div>
+                <div className={styles.signature}><span className={parity.unplannedBar} /></div>
                 <strong>Not planned yet</strong>
               </div>
-              <span className={styles.rowChevron} aria-hidden="true">›</span>
+              <span className={parity.rowChevron} aria-hidden="true">›</span>
             </div>
           </div>
 
