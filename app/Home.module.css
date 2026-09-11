@@ -1,0 +1,314 @@
+.home {
+  min-height: 100vh;
+  padding: 20px 0 92px;
+  background: #f4f7fb;
+  color: #152238;
+}
+
+.shell {
+  width: min(100%, 430px);
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px 18px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand strong {
+  color: #2563eb;
+  font-size: 0.86rem;
+  letter-spacing: 0.14em;
+}
+
+.brand span {
+  color: #718096;
+  font-size: 0.72rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.iconButton,
+.avatar {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #eaf0f8;
+  color: #1e3657;
+  font-size: 1rem;
+}
+
+.avatar {
+  background: #152238;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.hero {
+  padding: 0 18px 22px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.hero p {
+  margin: 8px 0 0;
+  color: #667085;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.section {
+  margin-top: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 18px 10px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.sectionHeader button {
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 0 18px 4px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.tripCard,
+.newTripCard {
+  position: relative;
+  flex: 0 0 152px;
+  min-height: 178px;
+  overflow: hidden;
+  border: 1px solid #dbe3ee;
+  border-radius: 22px;
+  background: white;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  scroll-snap-align: start;
+}
+
+.tripVisual {
+  position: relative;
+  height: 102px;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.tripVisual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(12, 25, 45, 0.42), transparent 58%);
+}
+
+.visualTokyo {
+  background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 50%, #f5d0fe 100%);
+}
+
+.visualEurope {
+  background: linear-gradient(145deg, #fde7c7 0%, #fdba74 48%, #fed7aa 100%);
+}
+
+.visualSingapore {
+  background: linear-gradient(145deg, #d1fae5 0%, #67e8f9 55%, #bfdbfe 100%);
+}
+
+.visualBali {
+  background: linear-gradient(145deg, #dcfce7 0%, #86efac 42%, #bae6fd 100%);
+}
+
+.visualNewZealand {
+  background: linear-gradient(145deg, #dbeafe 0%, #bbf7d0 52%, #e0e7ff 100%);
+}
+
+.visualThailand {
+  background: linear-gradient(145deg, #fef3c7 0%, #f9a8d4 55%, #c4b5fd 100%);
+}
+
+.visualVietnam {
+  background: linear-gradient(145deg, #fecaca 0%, #fde68a 50%, #bbf7d0 100%);
+}
+
+.visualArchive {
+  background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 45%, #dbeafe 100%);
+}
+
+.landmark {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 1;
+  font-size: 2.35rem;
+  filter: saturate(0.8);
+}
+
+.statusPill {
+  position: relative;
+  z-index: 1;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #29405f;
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.tripInfo {
+  padding: 11px 12px 13px;
+}
+
+.tripInfo strong {
+  display: block;
+  overflow: hidden;
+  font-size: 0.83rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tripInfo span {
+  display: block;
+  margin-top: 5px;
+  color: #667085;
+  font-size: 0.64rem;
+  line-height: 1.35;
+}
+
+.progress {
+  height: 4px;
+  margin-top: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8edf4;
+}
+
+.progress span {
+  height: 100%;
+  margin: 0;
+  border-radius: inherit;
+  background: #2563eb;
+}
+
+.newTripCard {
+  border-style: dashed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #40516b;
+  box-shadow: none;
+}
+
+.newTripCard b {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #eaf0ff;
+  color: #2563eb;
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.newTripCard span {
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.bottomNav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 10;
+  width: min(100%, 430px);
+  min-height: 72px;
+  padding: 9px 18px calc(9px + env(safe-area-inset-bottom));
+  border-top: 1px solid #dbe3ee;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  transform: translateX(-50%);
+}
+
+.navItem {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  color: #718096;
+  font-size: 0.58rem;
+}
+
+.navIcon {
+  font-size: 1.1rem;
+}
+
+.navItemActive {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+@media (min-width: 700px) {
+  .shell {
+    width: min(100%, 760px);
+  }
+
+  .bottomNav {
+    width: min(100%, 760px);
+  }
+
+  .tripCard,
+  .newTripCard {
+    flex-basis: 186px;
+  }
+}
