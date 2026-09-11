@@ -45,19 +45,19 @@ export default function NewTripPage() {
               <label htmlFor="ending-place">Ending place</label>
               <div className={styles.inputWrap}>
                 <input id="ending-place" className={styles.input} defaultValue="Tokyo (NRT)" />
-                <button className={styles.swapButton} type="button" aria-label="Swap places">↕</button>
+                <button className={styles.swapButton} type="button" aria-label="Swap starting and ending places">↕</button>
               </div>
             </div>
 
             <div className={styles.toggleRow}>
               <span>Return to starting place?</span>
-              <button className={styles.toggle} type="button" aria-label="Return to starting place enabled" />
+              <button className={styles.toggle} type="button" aria-label="Return to starting place enabled" aria-pressed="true" />
             </div>
           </form>
 
           <Link className={styles.primaryButton} href="/new-trip/storage">Continue <span aria-hidden="true">→</span></Link>
 
-          <MountainFooter text="Same places. A different you." />
+          <MountainFooter text="Same places. A different you." variant="japan" />
         </div>
       </section>
     </main>
