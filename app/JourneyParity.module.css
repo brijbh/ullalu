@@ -1,3 +1,7 @@
+.headerNoBack {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .headerSpacer {
   width: 34px;
   height: 34px;
@@ -131,6 +135,10 @@
 .weatherStack small {
   color: #49627a;
   font-size: .56rem;
+}
+
+.liveHeroRefined::after {
+  display: none;
 }
 
 .liveHeroArt {
