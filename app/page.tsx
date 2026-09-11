@@ -1,376 +1,173 @@
-"use client";
+import styles from "./Home.module.css";
 
-import { useEffect, useRef, useState } from "react";
-
-type SegmentKind = "travel" | "activity" | "free" | "reservation" | "rest" | "buffer";
-
-type FocusSegment = {
-  kind: SegmentKind;
-  icon: string;
-  title: string;
-  duration: string;
-  start: string;
-  end: string;
-  detail: string;
-  width: number;
-  current?: boolean;
-};
-
-type TimelineItem = {
-  time: string;
-  suffix?: string;
-  kind: SegmentKind;
-  icon: string;
-  title: string;
+type Trip = {
+  name: string;
   meta: string;
-  chip?: string;
+  status?: string;
+  visual: string;
+  icon: string;
+  progress?: number;
 };
 
-const overviewSegments = [
-  { kind: "travel", weight: 1.5 },
-  { kind: "buffer", weight: 1.92 },
-  { kind: "travel", weight: 6.17 },
-  { kind: "buffer", weight: 2.25 },
-  { kind: "travel", weight: 6.33 },
-  { kind: "travel", weight: 1.17 },
-  { kind: "activity", weight: 0.25 },
-  { kind: "free", weight: 1 },
-  { kind: "rest", weight: 3.41 },
-] as const;
-
-const focusSegments: FocusSegment[] = [
+const continuePlanning: Trip[] = [
   {
-    kind: "travel",
-    icon: "🚗",
-    title: "To BLR Airport",
-    duration: "45m",
-    start: "06:00",
-    end: "06:45",
-    detail: "Home → BLR",
-    width: 138,
+    name: "Japan 2026",
+    meta: "10–20 Sep · 6 days planned",
+    status: "Draft",
+    visual: "visualTokyo",
+    icon: "🗻",
+    progress: 68,
   },
   {
-    kind: "buffer",
-    icon: "🧳",
-    title: "Check-in",
-    duration: "1h 55m",
-    start: "07:30",
-    end: "09:25",
-    detail: "Security · Terminal 2",
-    width: 142,
-  },
-  {
-    kind: "travel",
-    icon: "✈",
-    title: "SQ 35",
-    duration: "6h 10m",
-    start: "09:25",
-    end: "15:35",
-    detail: "BLR → SIN",
-    width: 184,
-    current: true,
-  },
-  {
-    kind: "buffer",
-    icon: "🛬",
-    title: "Layover",
-    duration: "2h 15m",
-    start: "15:35",
-    end: "17:50",
-    detail: "Changi Airport",
-    width: 142,
-  },
-  {
-    kind: "travel",
-    icon: "✈",
-    title: "SQ 12",
-    duration: "6h 20m",
-    start: "17:50",
-    end: "14:10 +1",
-    detail: "SIN → NRT",
-    width: 184,
-  },
-  {
-    kind: "travel",
-    icon: "🚆",
-    title: "To hotel",
-    duration: "1h 10m",
-    start: "14:10",
-    end: "15:20",
-    detail: "NRT → Shinjuku",
-    width: 146,
-  },
-  {
-    kind: "activity",
-    icon: "🏨",
-    title: "Check-in",
-    duration: "15m",
-    start: "15:20",
-    end: "15:35",
-    detail: "Hotel Gracery",
-    width: 132,
-  },
-  {
-    kind: "free",
-    icon: "◷",
-    title: "Free time",
-    duration: "~1h",
-    start: "15:35",
-    end: "16:35",
-    detail: "Explore nearby",
-    width: 132,
+    name: "Europe Summer",
+    meta: "14–29 Jun · 4 cities",
+    status: "Planning",
+    visual: "visualEurope",
+    icon: "🏛️",
+    progress: 36,
   },
 ];
 
-const timelineItems: TimelineItem[] = [
+const upcomingTrips: Trip[] = [
   {
-    time: "06:00",
-    kind: "travel",
-    icon: "🚗",
-    title: "Travel to BLR Airport",
-    meta: "Car · 45 min · 32 km",
-    chip: "Home → BLR",
+    name: "Singapore",
+    meta: "04–08 Nov · 5 days",
+    status: "42 days",
+    visual: "visualSingapore",
+    icon: "🌆",
   },
   {
-    time: "07:30",
-    kind: "buffer",
-    icon: "🧳",
-    title: "Check-in & Security",
-    meta: "1h 55m · Kempegowda Int. Airport (BLR)",
+    name: "Bali",
+    meta: "18–23 Jan · 6 days",
+    status: "Upcoming",
+    visual: "visualBali",
+    icon: "🌴",
   },
   {
-    time: "09:25",
-    kind: "travel",
-    icon: "✈",
-    title: "SQ 35   BLR → SIN",
-    meta: "6h 10m · Singapore Airlines",
-    chip: "Terminal 2",
-  },
-  {
-    time: "15:35",
-    kind: "buffer",
-    icon: "🛬",
-    title: "Layover in Singapore",
-    meta: "2h 15m · Changi Airport (SIN)",
-  },
-  {
-    time: "17:50",
-    kind: "travel",
-    icon: "✈",
-    title: "SQ 12   SIN → NRT",
-    meta: "6h 20m · Singapore Airlines",
-    chip: "Terminal 3",
-  },
-  {
-    time: "14:10",
-    suffix: "+1d",
-    kind: "travel",
-    icon: "🚆",
-    title: "Travel to hotel",
-    meta: "1h 10m · Train (Narita Express)",
-    chip: "NRT → Hotel",
-  },
-  {
-    time: "15:20",
-    kind: "activity",
-    icon: "🏨",
-    title: "Check-in",
-    meta: "Hotel Gracery Shinjuku · Shinjuku, Tokyo",
-  },
-  {
-    time: "",
-    kind: "free",
-    icon: "◷",
-    title: "Evening free time",
-    meta: "~ 1 hour · Explore nearby / early dinner",
+    name: "New Zealand",
+    meta: "03–14 Apr · 12 days",
+    status: "Upcoming",
+    visual: "visualNewZealand",
+    icon: "🏔️",
   },
 ];
 
-const dayNote = "Immigration may take time.";
+const completedTrips: Trip[] = [
+  {
+    name: "Thailand",
+    meta: "Feb 2026 · 8 days",
+    status: "Completed",
+    visual: "visualThailand",
+    icon: "🛕",
+  },
+  {
+    name: "Vietnam",
+    meta: "Nov 2025 · 7 days",
+    status: "Completed",
+    visual: "visualVietnam",
+    icon: "🏮",
+  },
+  {
+    name: "Europe",
+    meta: "Jun 2025 · 14 days",
+    status: "Completed",
+    visual: "visualArchive",
+    icon: "🚆",
+  },
+];
+
+function TripCard({ trip }: { trip: Trip }) {
+  return (
+    <article className={styles.tripCard}>
+      <div className={`${styles.tripVisual} ${styles[trip.visual]}`}>
+        <span className={styles.landmark} aria-hidden="true">{trip.icon}</span>
+        {trip.status ? <span className={styles.statusPill}>{trip.status}</span> : null}
+      </div>
+      <div className={styles.tripInfo}>
+        <strong>{trip.name}</strong>
+        <span>{trip.meta}</span>
+        {typeof trip.progress === "number" ? (
+          <div className={styles.progress} aria-label={`${trip.progress}% planned`}>
+            <span style={{ width: `${trip.progress}%` }} />
+          </div>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+function Section({
+  title,
+  trips,
+  showNewTrip = false,
+}: {
+  title: string;
+  trips: Trip[];
+  showNewTrip?: boolean;
+}) {
+  return (
+    <section className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2>{title}</h2>
+        <button type="button">See all</button>
+      </div>
+      <div className={styles.rail}>
+        {trips.map((trip) => <TripCard key={trip.name} trip={trip} />)}
+        {showNewTrip ? (
+          <button className={styles.newTripCard} type="button" aria-label="Create a new trip">
+            <b aria-hidden="true">+</b>
+            <span>New Trip</span>
+          </button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
-  const [expanded, setExpanded] = useState(false);
-  const currentRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    currentRef.current?.scrollIntoView({
-      behavior: "auto",
-      block: "nearest",
-      inline: "center",
-    });
-  }, []);
-
   return (
-    <main className="page-shell">
-      <section
-        className={`calendar-card${expanded ? " calendar-card--expanded" : ""}`}
-        aria-label="Ullalu travel day itinerary"
-        onClick={() => setExpanded(true)}
-      >
-        <header className="calendar-card__header">
-          <div>
-            <p className="day-kicker">TUE · 10 SEP</p>
-            <h1>Bengaluru → Tokyo</h1>
-            <p className="day-subtitle">Flight to Tokyo, arrive and rest</p>
+    <main className={styles.home}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <div className={styles.brand}>
+            <strong>ULLALU</strong>
+            <span>See your day. Travel smarter.</span>
           </div>
-          <div className="free-pill" aria-label="1 hour free">
-            <span aria-hidden="true">☀</span>
-            <strong>1h free</strong>
+          <div className={styles.headerActions}>
+            <button className={styles.iconButton} type="button" aria-label="Search">⌕</button>
+            <button className={styles.iconButton} type="button" aria-label="Notifications">○</button>
+            <button className={styles.avatar} type="button" aria-label="Profile">BB</button>
           </div>
         </header>
 
-        <section className="overview" aria-label="Full-day overview">
-          <div className="overview__now" aria-hidden="true">
-            <strong>Now</strong>
-            <span>12:10</span>
-          </div>
-          <div className="overview__track">
-            {overviewSegments.map((segment, index) => (
-              <span
-                key={`${segment.kind}-${index}`}
-                className={`overview__segment overview__segment--${segment.kind}`}
-                style={{ flexGrow: segment.weight }}
-              />
-            ))}
-            <span className="overview__marker" aria-label="Current time 12:10" />
-          </div>
-          <div className="overview__hours" aria-hidden="true">
-            <span>06:00</span>
-            <span>12:00</span>
-            <span>18:00</span>
-            <span>24:00</span>
-          </div>
+        <section className={styles.hero}>
+          <h1>Your journeys</h1>
+          <p>Pick up where you left off, see what’s coming, or revisit a past trip.</p>
         </section>
 
-        {!expanded ? (
-          <>
-            <section
-              className="focus-strip"
-              aria-label="Scrollable itinerary around the current activity"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="focus-strip__rail">
-                {focusSegments.map((segment) => (
-                  <article
-                    ref={segment.current ? currentRef : undefined}
-                    key={`${segment.title}-${segment.start}`}
-                    className={`focus-segment focus-segment--${segment.kind}${segment.current ? " focus-segment--current" : ""}`}
-                    style={{ width: segment.width }}
-                    aria-current={segment.current ? "true" : undefined}
-                  >
-                    {segment.current ? <span className="focus-segment__current-label">CURRENT</span> : null}
-                    <span className="focus-segment__icon" aria-hidden="true">{segment.icon}</span>
-                    <strong className="focus-segment__title">{segment.title}</strong>
-                    <span className="focus-segment__duration">{segment.duration}</span>
-                    <span className="focus-segment__detail">{segment.detail}</span>
-                    <div className="focus-segment__time">
-                      <span>{segment.start}</span>
-                      <span>{segment.end}</span>
-                    </div>
-                    {segment.current ? (
-                      <div className="activity-progress" aria-label="Current segment progress">
-                        <span className="activity-progress__line"><span /></span>
-                        <small>You are here · 12:10</small>
-                      </div>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            </section>
+        <Section title="Continue planning" trips={continuePlanning} showNewTrip />
+        <Section title="Upcoming trips" trips={upcomingTrips} />
+        <Section title="Completed trips" trips={completedTrips} />
+      </div>
 
-            <button className="day-note-row" type="button" onClick={() => setExpanded(true)}>
-              <span className={dayNote ? "day-note-row__text" : "day-note-row__text day-note-row__text--placeholder"}>
-                {dayNote || "Add a note for this day"}
-              </span>
-              <span className="day-note-row__chevron" aria-hidden="true">⌄</span>
-            </button>
-          </>
-        ) : (
-          <section className="expanded-view" onClick={(event) => event.stopPropagation()}>
-            <div className="expanded-summary">
-              <div className="expanded-summary__bar" aria-label="Day summary">
-                <span className="summary-block summary-block--travel" style={{ flex: 17.25 }}>✈ <strong>17h 15m</strong></span>
-                <span className="summary-block summary-block--buffer" style={{ flex: 2.25 }} aria-label="Layover and buffer" />
-                <span className="summary-block summary-block--rest" style={{ flex: 5 }}>🛏 <strong>Rest</strong></span>
-              </div>
-              <div className="expanded-summary__labels">
-                <span>09:25</span>
-                <span>14:10 (+1d)</span>
-                <strong>1h free</strong>
-              </div>
-            </div>
-
-            <div className="expanded-layout">
-              <div className="timeline" aria-label="Detailed itinerary timeline">
-                {timelineItems.map((item, index) => (
-                  <article className="timeline-row" key={`${item.title}-${index}`}>
-                    <div className="timeline-row__time">
-                      <strong>{item.time || " "}</strong>
-                      {item.suffix ? <span>{item.suffix}</span> : null}
-                    </div>
-                    <div className={`timeline-row__node timeline-row__node--${item.kind}`}>
-                      <span>{item.icon}</span>
-                    </div>
-                    <div className="timeline-row__content">
-                      <strong>{item.title}</strong>
-                      <span>{item.meta}</span>
-                    </div>
-                    {item.chip ? <span className="timeline-row__chip">{item.chip}</span> : null}
-                    <button type="button" className="timeline-row__more" aria-label={`More options for ${item.title}`}>•••</button>
-                  </article>
-                ))}
-              </div>
-
-              <aside className="detail-stack" aria-label="Travel day details">
-                <section className="route-map-card">
-                  <div className="route-map-card__map" aria-label="Route map from Bengaluru to Tokyo">
-                    <span className="map-point map-point--blr">● <small>BLR</small></span>
-                    <span className="map-route">✈</span>
-                    <span className="map-point map-point--nrt">● <small>NRT</small></span>
-                  </div>
-                  <div className="route-stats">
-                    <span><small>Total travel time</small><strong>17h 15m</strong></span>
-                    <span><small>Distance</small><strong>~ 7,300 km</strong></span>
-                  </div>
-                </section>
-
-                <section className="detail-card">
-                  <div className="detail-card__title">✈ <strong>Flight details</strong></div>
-                  <div className="detail-table">
-                    <span>SQ 35</span><span>BLR → SIN</span><span>09:25–15:35</span>
-                    <span>SQ 12</span><span>SIN → NRT</span><span>17:50–14:10 (+1d)</span>
-                  </div>
-                  <button type="button" className="text-link">View booking reference</button>
-                </section>
-
-                <section className="detail-card hotel-card">
-                  <div className="detail-card__title">🏨 <strong>Hotel</strong></div>
-                  <div className="hotel-card__content">
-                    <div className="hotel-card__thumb" aria-hidden="true">🏙</div>
-                    <div><strong>Hotel Gracery Shinjuku</strong><span>Shinjuku, Tokyo</span></div>
-                  </div>
-                  <button type="button" className="text-link">View details</button>
-                </section>
-
-                <section className="detail-card">
-                  <div className="detail-card__title"><span>▤</span><strong>Notes</strong></div>
-                  <p>Immigration can take time. Consider eSIM setup at the airport.</p>
-                </section>
-              </aside>
-            </div>
-
-            <button
-              type="button"
-              className="collapse-button"
-              aria-label="Collapse day card"
-              onClick={() => setExpanded(false)}
-            >
-              <span>Collapse day</span>
-              <span aria-hidden="true">⌃</span>
-            </button>
-          </section>
-        )}
-      </section>
+      <nav className={styles.bottomNav} aria-label="Primary navigation">
+        <button className={`${styles.navItem} ${styles.navItemActive}`} type="button">
+          <span className={styles.navIcon} aria-hidden="true">⌂</span>
+          <span>Home</span>
+        </button>
+        <button className={styles.navItem} type="button">
+          <span className={styles.navIcon} aria-hidden="true">▣</span>
+          <span>My Trips</span>
+        </button>
+        <button className={styles.navItem} type="button">
+          <span className={styles.navIcon} aria-hidden="true">◇</span>
+          <span>Explore</span>
+        </button>
+        <button className={styles.navItem} type="button">
+          <span className={styles.navIcon} aria-hidden="true">☰</span>
+          <span>More</span>
+        </button>
+      </nav>
     </main>
   );
 }
