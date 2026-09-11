@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "../../JourneyFlow.module.css";
+import parity from "../../JourneyParity.module.css";
 import { ActionGlyph, AppHeader, TripArt } from "../../components/JourneyUI";
 
 const actions = [
@@ -23,7 +24,7 @@ export default function ThailandTripPage() {
               <p>12 Jan – 20 Jan 2025</p>
               <p>Bangkok · Chiang Mai · Phuket</p>
             </div>
-            <TripArt kind="thailand" className={styles.completedHeroArtSvg} />
+            <TripArt kind="thailand" className={parity.completedHeroArtSvg} />
           </div>
 
           <div className={styles.tabs}>
@@ -42,10 +43,10 @@ export default function ThailandTripPage() {
 
           <div className={styles.actionList}>
             {actions.map(([kind, label]) => (
-              <Link href="#" className={styles.actionRow} key={label}>
-                <span className={styles.actionIcon}><ActionGlyph kind={kind} /></span>
+              <Link href="#" className={styles.actionRow} key={label} style={{ textDecoration: "none" }}>
+                <span className={parity.actionIcon}><ActionGlyph kind={kind} /></span>
                 <span>{label}</span>
-                <span className={styles.rowChevron} aria-hidden="true">›</span>
+                <span className={parity.rowChevron} aria-hidden="true">›</span>
               </Link>
             ))}
           </div>
