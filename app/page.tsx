@@ -99,7 +99,7 @@ export default function Home() {
 
   useEffect(() => {
     currentRef.current?.scrollIntoView({
-      behavior: "instant",
+      behavior: "auto",
       block: "nearest",
       inline: "center",
     });
