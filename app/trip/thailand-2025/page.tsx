@@ -1,13 +1,13 @@
 import Link from "next/link";
 import styles from "../../JourneyFlow.module.css";
-import { AppHeader } from "../../components/JourneyUI";
+import { ActionGlyph, AppHeader, TripArt } from "../../components/JourneyUI";
 
 const actions = [
-  ["▣", "View itinerary"],
-  ["◉", "3 questions"],
-  ["↗", "Share this trip"],
-  ["⧉", "Reuse this itinerary"],
-  ["⚙", "Trip settings"],
+  ["calendar", "View itinerary"],
+  ["question", "3 questions"],
+  ["share", "Share this trip"],
+  ["reuse", "Reuse this itinerary"],
+  ["settings", "Trip settings"],
 ] as const;
 
 export default function ThailandTripPage() {
@@ -18,10 +18,12 @@ export default function ThailandTripPage() {
           <AppHeader backHref="/trips" menu />
 
           <div className={styles.completedHero}>
-            <h1>Thailand 2025</h1>
-            <p>12 Jan – 20 Jan 2025</p>
-            <p>Bangkok · Chiang Mai · Phuket</p>
-            <span className={styles.completedHeroArt} aria-hidden="true" />
+            <div>
+              <h1>Thailand 2025</h1>
+              <p>12 Jan – 20 Jan 2025</p>
+              <p>Bangkok · Chiang Mai · Phuket</p>
+            </div>
+            <TripArt kind="thailand" className={styles.completedHeroArtSvg} />
           </div>
 
           <div className={styles.tabs}>
@@ -39,11 +41,11 @@ export default function ThailandTripPage() {
           </div>
 
           <div className={styles.actionList}>
-            {actions.map(([icon, label]) => (
-              <Link href={label === "View itinerary" ? "/trip/japan-2026" : "#"} className={styles.actionRow} key={label} style={{ textDecoration: "none" }}>
-                <span aria-hidden="true">{icon}</span>
+            {actions.map(([kind, label]) => (
+              <Link href="#" className={styles.actionRow} key={label}>
+                <span className={styles.actionIcon}><ActionGlyph kind={kind} /></span>
                 <span>{label}</span>
-                <span aria-hidden="true">›</span>
+                <span className={styles.rowChevron} aria-hidden="true">›</span>
               </Link>
             ))}
           </div>
