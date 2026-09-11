@@ -53,7 +53,7 @@ export function Signature({ segments, className = "" }: { segments: SignatureSeg
 }
 
 export function StorageIcon({ kind }: { kind: "drive" | "cloud" | "device" }) {
-  const iconStyle = { width: 28, height: 28, display: "block" };
+  const iconStyle = { width: 28, height: 28, display: "block" as const };
 
   if (kind === "drive") {
     return (
