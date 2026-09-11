@@ -1,0 +1,20 @@
+.calendar-card,
+.calendar-card--expanded {
+  width: min(100%, 430px);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+@media (min-width: 780px) {
+  .calendar-card--expanded {
+    width: min(100%, 430px);
+  }
+
+  .expanded-layout {
+    display: block;
+  }
+
+  .detail-stack {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+}
