@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./Home.module.css";
 
 type IllustrationKind = "thailand" | "vietnam" | "japan" | "singapore" | "newzealand" | "europe";
@@ -265,7 +266,7 @@ export default function Home() {
               <TimeSignature tone="featured" />
               <div className={styles.featuredFooter}>
                 <span>{japan.meta}</span>
-                <button type="button">Continue planning <Icon name="arrow" /></button>
+                <Link href="/trip/japan-2026">Continue planning <Icon name="arrow" /></Link>
               </div>
             </article>
           </div>
@@ -277,10 +278,10 @@ export default function Home() {
           <SmallJourneyCard journey={europe} phaseLabel="Planning" />
         </section>
 
-        <button type="button" className={styles.planButton}>
+        <Link href="/new-trip" className={styles.planButton}>
           <span className={styles.plusCircle}><Icon name="plus" /></span>
           <span><strong>Plan another journey</strong><small>A new place. A new you.</small></span>
-        </button>
+        </Link>
 
         <section className={styles.journalFooter} aria-label="Travel thought">
           <p>Collect moments<br/>not just destinations.</p>
@@ -295,7 +296,7 @@ export default function Home() {
 
       <nav className={styles.bottomNav} aria-label="Primary navigation">
         <button className={`${styles.navItem} ${styles.navActive}`} type="button"><Icon name="home"/><span>Home</span></button>
-        <button className={styles.navItem} type="button"><Icon name="trips"/><span>My Trips</span></button>
+        <Link className={styles.navItem} href="/trips"><Icon name="trips"/><span>My Trips</span></Link>
         <button className={styles.navItem} type="button"><Icon name="explore"/><span>Explore</span></button>
         <button className={styles.navItem} type="button"><Icon name="more"/><span>More</span></button>
       </nav>
