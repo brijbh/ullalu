@@ -1,7 +1,88 @@
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
-import { ActionGlyph, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
+import DayCard, { type DayCardSegment } from "../components/DayCard";
+import { BottomNav } from "../components/JourneyUI";
+
+const liveSegments: DayCardSegment[] = [
+  {
+    kind: "activity",
+    icon: "☕",
+    title: "Breakfast",
+    duration: "1h",
+    start: "09:00",
+    end: "10:00",
+    detail: "Ueno",
+    weight: 1,
+    width: 132,
+  },
+  {
+    kind: "travel",
+    icon: "🚆",
+    title: "To museum",
+    duration: "25m",
+    start: "10:00",
+    end: "10:25",
+    detail: "Metro · Ueno",
+    weight: .42,
+    width: 132,
+  },
+  {
+    kind: "free",
+    icon: "◷",
+    title: "Free time",
+    duration: "1h 35m",
+    start: "10:25",
+    end: "12:00",
+    detail: "Lunch · wander nearby",
+    weight: 1.58,
+    width: 146,
+  },
+  {
+    kind: "activity",
+    icon: "🏛",
+    title: "Ueno Museum",
+    duration: "2h",
+    start: "14:00",
+    end: "16:00",
+    detail: "Art · history · galleries",
+    weight: 2,
+    width: 172,
+  },
+  {
+    kind: "travel",
+    icon: "🚶",
+    title: "Walk to Ueno Park",
+    duration: "45m",
+    start: "16:15",
+    end: "17:00",
+    detail: "On foot · 1.8 km",
+    weight: .75,
+    width: 142,
+  },
+  {
+    kind: "reservation",
+    icon: "🍜",
+    title: "Dinner",
+    duration: "1h 30m",
+    start: "18:00",
+    end: "19:30",
+    detail: "Reservation · Asakusa",
+    weight: 1.5,
+    width: 150,
+  },
+  {
+    kind: "rest",
+    icon: "🌙",
+    title: "Evening",
+    duration: "2h 30m",
+    start: "19:30",
+    end: "22:00",
+    detail: "Return to hotel · rest",
+    weight: 2.5,
+    width: 160,
+  },
+];
 
 export default function TodayPage() {
   return (
@@ -24,40 +105,22 @@ export default function TodayPage() {
             </div>
           </div>
 
-          <section className={styles.liveCard}>
-            <div className={`${styles.liveHero} ${parity.liveHeroRefined}`}>
-              <span className={styles.liveBadge}>LIVE TRIP</span>
-              <h2>Ueno Museum</h2>
-              <span className={styles.liveTime}>14:00 – 16:00</span>
-              <p>Explore art, history and a quieter side of Tokyo.</p>
-              <TripArt kind="museum" className={parity.liveHeroArt} />
-            </div>
-
-            <div className={styles.nowBlock}>
-              <span className={styles.nowLabel}>Now</span>
-              <div className={styles.nowSignature}>
-                <Signature segments={sampleSignature} />
-              </div>
-              <div className={styles.timeLabels}>
-                <span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span>
-              </div>
-            </div>
-
-            <div className={styles.nextRow}>
-              <strong>Next</strong>
-              <span className={parity.nextIconRefine}><ActionGlyph kind="walk" /></span>
-              <div className={styles.nextCopy}>
-                <strong>Walk to Ueno Park</strong>
-                <span>16:15 – 17:00</span>
-              </div>
-              <span className={parity.rowChevron} aria-hidden="true">›</span>
-            </div>
-
-            <Link href="/trip/japan-2026/day/1" className={styles.planRow}>
-              <span className={parity.planRowCopy}><ActionGlyph kind="list" />View today&apos;s plan</span>
-              <span className={parity.rowChevron} aria-hidden="true">›</span>
-            </Link>
-          </section>
+          <div style={{ marginTop: 18 }}>
+            <DayCard
+              mode="live"
+              dayLabel="FRI · 2 OCT"
+              route="Ueno → Asakusa"
+              subtitle="Museum, park, dinner and an easy evening"
+              freeTime="1h 35m"
+              segments={liveSegments}
+              currentIndex={3}
+              nowTime="14:42"
+              nowPositionPercent={55}
+              segmentProgressPercent={35}
+              alert="Only 15 min between Ueno Museum and the walk to Ueno Park."
+              note="Pick up the museum postcard before leaving."
+            />
+          </div>
         </div>
         <BottomNav active="home" />
       </section>
