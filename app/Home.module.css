@@ -421,7 +421,8 @@
   font-size: .61rem;
 }
 
-.featuredFooter button {
+.featuredFooter button,
+.featuredFooter a {
   min-height: 34px;
   padding: 0 12px 0 14px;
   border: 0;
@@ -436,7 +437,8 @@
   cursor: pointer;
 }
 
-.featuredFooter button svg {
+.featuredFooter button svg,
+.featuredFooter a svg {
   width: 14px;
   height: 14px;
 }
@@ -507,6 +509,7 @@
   background: linear-gradient(135deg, #edf4f8, #e6eef3);
   color: var(--ink);
   box-shadow: 0 8px 22px rgba(47, 63, 74, .04);
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -593,6 +596,7 @@
   background: transparent;
   color: #536170;
   font-size: .58rem;
+  text-decoration: none;
   cursor: pointer;
 }
 
