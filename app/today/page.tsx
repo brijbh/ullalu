@@ -1,11 +1,10 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import DayCard, { type DayCardSegment, type DayCardSegmentKind, type DayNavigationItem } from "../components/DayCard";
-import BottomSheet from "../components/BottomSheet";
 import { BottomNav, SuggestionIcon } from "../components/JourneyUI";
 
 type LiveDay = {
@@ -70,7 +69,7 @@ export default function TodayPage() {
   const [days, setDays] = useState<LiveDay[]>(initialDays);
   const [dayOffset, setDayOffset] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>(undefined);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const addDialogRef = useRef<HTMLDialogElement | null>(null);
   const [photoCount, setPhotoCount] = useState(0);
 
   const dayArrayIndex = dayOffset + 1;
@@ -106,7 +105,7 @@ export default function TodayPage() {
         ? { ...day, segments: [...day.segments, newSegment].sort((a, b) => a.start.localeCompare(b.start)) }
         : day
     )));
-    setPickerOpen(false);
+    addDialogRef.current?.close();
   }
 
   function handlePhotos(event: ChangeEvent<HTMLInputElement>) {
@@ -153,7 +152,18 @@ export default function TodayPage() {
           </div>
 
           <div className={styles.dayActionRow}>
-            <button className={styles.dayActionButton} type="button" onClick={() => setPickerOpen(true)}>
+            <button
+              className={styles.dayActionButton}
+              type="button"
+              onClick={() => {
+                const dialog = addDialogRef.current;
+                if (dialog && !dialog.open) dialog.showModal();
+              }}
+              onPointerUp={() => {
+                const dialog = addDialogRef.current;
+                if (dialog && !dialog.open) dialog.showModal();
+              }}
+            >
               <span aria-hidden="true">＋</span><strong>Add item</strong>
             </button>
             <label className={styles.dayPhotoButton}>
@@ -193,12 +203,19 @@ export default function TodayPage() {
         <BottomNav active="home" />
       </section>
 
-      <BottomSheet
-        open={pickerOpen}
-        eyebrow="ADD ITEM"
-        title="Add to this day"
-        onClose={() => setPickerOpen(false)}
+      <dialog
+        ref={addDialogRef}
+        className={styles.addItemDialog}
       >
+        <div className={styles.sheetHandle} aria-hidden="true" />
+        <div className={styles.composerSheetHead}>
+          <div>
+            <small>ADD ITEM</small>
+            <h2>Add to this day</h2>
+          </div>
+          <button type="button" onClick={() => addDialogRef.current?.close()} aria-label="Close">×</button>
+        </div>
+
         <div className={styles.itemTypeGrid}>
           {itemTypes.map(([iconKind, title, kind]) => (
             <button type="button" key={title} onClick={() => addQuickItem(kind, title)}>
@@ -208,7 +225,7 @@ export default function TodayPage() {
             </button>
           ))}
         </div>
-      </BottomSheet>
+      </dialog>
     </main>
   );
 }
