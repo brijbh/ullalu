@@ -1,10 +1,9 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "../../../../JourneyFlow.module.css";
 import DayCard, { type DayCardSegmentKind, type DayNavigationItem } from "../../../../components/DayCard";
-import BottomSheet from "../../../../components/BottomSheet";
 import { AppHeader, BottomNav, SuggestionIcon } from "../../../../components/JourneyUI";
 import {
   DEFAULT_DRAFT,
@@ -57,7 +56,7 @@ export default function DayComposerPage() {
   const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
   const [dayIndex, setDayIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>(2);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const addDialogRef = useRef<HTMLDialogElement | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -82,7 +81,7 @@ export default function DayComposerPage() {
     setDayIndex(nextIndex);
     setSelectedIndex(undefined);
     setEditor(null);
-    setPickerOpen(false);
+    addDialogRef.current?.close();
   }
 
   function commitSegments(updated: PlannerSegment[]) {
@@ -98,9 +97,14 @@ export default function DayComposerPage() {
     window.setTimeout(() => setSaved(false), 1400);
   }
 
+  function openAddDialog() {
+    setEditor(null);
+    const dialog = addDialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }
+
   function chooseItemType(kind: DayCardSegmentKind) {
     const item = itemTypes.find((entry) => entry[3] === kind);
-    setPickerOpen(false);
     setEditor({
       ...blankEditor,
       kind,
@@ -117,6 +121,8 @@ export default function DayComposerPage() {
       end: segment.end.replace(" +1", ""),
       detail: segment.detail,
     });
+    const dialog = addDialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
   }
 
   function saveEditor(event: FormEvent<HTMLFormElement>) {
@@ -144,6 +150,7 @@ export default function DayComposerPage() {
     updated.sort((a, b) => a.start.localeCompare(b.start));
     commitSegments(updated);
     setEditor(null);
+    addDialogRef.current?.close();
     setSelectedIndex(Math.max(0, updated.findIndex((segment) => segment.id === next.id)));
   }
 
@@ -204,7 +211,12 @@ export default function DayComposerPage() {
           </div>
 
           <div className={styles.dayActionRow}>
-            <button className={styles.dayActionButton} type="button" onClick={() => setPickerOpen(true)}>
+            <button
+              className={styles.dayActionButton}
+              type="button"
+              onClick={openAddDialog}
+              onPointerUp={openAddDialog}
+            >
               <span aria-hidden="true">＋</span>
               <strong>Add item</strong>
             </button>
@@ -249,29 +261,30 @@ export default function DayComposerPage() {
         <BottomNav active="trips" />
       </section>
 
-      <BottomSheet
-        open={pickerOpen}
-        eyebrow="ADD ITEM"
-        title="What are you adding?"
-        onClose={() => setPickerOpen(false)}
-      >
-        <div className={styles.itemTypeGrid}>
-          {itemTypes.map(([iconKind, title, detail, segmentKind]) => (
-            <button type="button" key={title} onClick={() => chooseItemType(segmentKind)}>
-              <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
-              <strong>{title}</strong>
-              <span>{detail}</span>
-            </button>
-          ))}
-        </div>
-      </BottomSheet>
-
-      <BottomSheet
-        open={Boolean(editor)}
-        eyebrow={editor?.id ? "EDIT ITEM" : "ADD ITEM"}
-        title={editor?.id ? editor.title : "Add to this day"}
+      <dialog
+        ref={addDialogRef}
+        className={styles.addItemDialog}
+        onCancel={() => setEditor(null)}
         onClose={() => setEditor(null)}
       >
+        <div className={styles.sheetHandle} aria-hidden="true" />
+        <div className={styles.composerSheetHead}>
+          <div>
+            <small>{editor ? (editor.id ? "EDIT ITEM" : "ADD ITEM") : "ADD ITEM"}</small>
+            <h2>{editor ? (editor.id ? editor.title : "Add to this day") : "What are you adding?"}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setEditor(null);
+              addDialogRef.current?.close();
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
         {editor ? (
           <form className={styles.sheetForm} onSubmit={saveEditor}>
             <div className={styles.field}>
@@ -328,8 +341,18 @@ export default function DayComposerPage() {
               {editor.id ? "Save changes" : "Add to day"}
             </button>
           </form>
-        ) : null}
-      </BottomSheet>
+        ) : (
+          <div className={styles.itemTypeGrid}>
+            {itemTypes.map(([iconKind, title, detail, segmentKind]) => (
+              <button type="button" key={title} onClick={() => chooseItemType(segmentKind)}>
+                <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
+                <strong>{title}</strong>
+                <span>{detail}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </dialog>
     </main>
   );
 }
