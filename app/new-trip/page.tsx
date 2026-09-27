@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../JourneyFlow.module.css";
-import { AppHeader, MountainFooter } from "../components/JourneyUI";
+import { AppHeader, BottomNav, MountainFooter } from "../components/JourneyUI";
 import { DEFAULT_DRAFT, getDraft, saveDraft, type TripDraft } from "../lib/tripSession";
 
 export default function NewTripPage() {
@@ -126,6 +126,7 @@ export default function NewTripPage() {
 
           <MountainFooter text="Same places. A different you." variant="japan" />
         </div>
+        <BottomNav active="trips" />
       </section>
     </main>
   );
