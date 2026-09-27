@@ -15,8 +15,8 @@ const planning = [
 ] as const;
 
 const upcoming = [
-  ["Singapore", "12 Nov – 16 Nov 2026", "singapore"],
-  ["New Zealand", "Feb 2027", "newzealand"],
+  ["Singapore", "12 Nov – 16 Nov 2026", "singapore", "/trip/singapore"],
+  ["New Zealand", "Feb 2027", "newzealand", "#"],
 ] as const;
 
 const completed = [
@@ -99,16 +99,28 @@ export default function TripsPage() {
           {tab === "upcoming" ? (
             <section className={styles.tripListSection}>
               <h2>Upcoming</h2>
-              {upcomingRows.map(([name, date, art]) => (
-                <article className={styles.libraryCard} key={name}>
-                  <div className={parity.libraryCopy}>
-                    <strong>{name}</strong>
-                    <span>{date}</span>
-                    <Signature segments={sampleSignature.slice(0, 5)} />
-                    <small>Ready to travel</small>
-                  </div>
-                  <TripArt kind={art} className={parity.libraryArt} />
-                </article>
+              {upcomingRows.map(([name, date, art, href]) => (
+                href !== "#" ? (
+                  <Link href={href} className={`${styles.libraryCard} ${parity.completedLibraryCard}`} key={name}>
+                    <div className={parity.libraryCopy}>
+                      <strong>{name}</strong>
+                      <span>{date}</span>
+                      <Signature segments={sampleSignature.slice(0, 5)} />
+                      <small>Ready to travel</small>
+                    </div>
+                    <TripArt kind={art} className={parity.libraryArt} />
+                  </Link>
+                ) : (
+                  <article className={styles.libraryCard} key={name}>
+                    <div className={parity.libraryCopy}>
+                      <strong>{name}</strong>
+                      <span>{date}</span>
+                      <Signature segments={sampleSignature.slice(0, 5)} />
+                      <small>Ready to travel</small>
+                    </div>
+                    <TripArt kind={art} className={parity.libraryArt} />
+                  </article>
+                )
               ))}
               {!upcomingRows.length ? <div className={styles.emptyState}>No upcoming trips match “{query}”.</div> : null}
             </section>
