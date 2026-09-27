@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "../../../../JourneyFlow.module.css";
 import DayCard, { type DayCardSegmentKind, type DayNavigationItem } from "../../../../components/DayCard";
+import BottomSheet from "../../../../components/BottomSheet";
 import { AppHeader, BottomNav, SuggestionIcon } from "../../../../components/JourneyUI";
 import {
   DEFAULT_DRAFT,
@@ -248,44 +249,31 @@ export default function DayComposerPage() {
         <BottomNav active="trips" />
       </section>
 
-      {pickerOpen ? (
-        <div className={styles.composerOverlay} role="presentation" onMouseDown={(event) => {
-          if (event.currentTarget === event.target) setPickerOpen(false);
-        }}>
-          <section className={styles.itemPickerSheet} aria-label="Choose item type">
-            <div className={styles.composerSheetHead}>
-              <div>
-                <small>ADD ITEM</small>
-                <h2>What are you adding?</h2>
-              </div>
-              <button type="button" onClick={() => setPickerOpen(false)} aria-label="Close">×</button>
-            </div>
-            <div className={styles.itemTypeGrid}>
-              {itemTypes.map(([iconKind, title, detail, segmentKind]) => (
-                <button type="button" key={title} onClick={() => chooseItemType(segmentKind)}>
-                  <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
-                  <strong>{title}</strong>
-                  <span>{detail}</span>
-                </button>
-              ))}
-            </div>
-          </section>
+      <BottomSheet
+        open={pickerOpen}
+        eyebrow="ADD ITEM"
+        title="What are you adding?"
+        onClose={() => setPickerOpen(false)}
+      >
+        <div className={styles.itemTypeGrid}>
+          {itemTypes.map(([iconKind, title, detail, segmentKind]) => (
+            <button type="button" key={title} onClick={() => chooseItemType(segmentKind)}>
+              <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
+              <strong>{title}</strong>
+              <span>{detail}</span>
+            </button>
+          ))}
         </div>
-      ) : null}
+      </BottomSheet>
 
-      {editor ? (
-        <div className={styles.composerOverlay} role="presentation" onMouseDown={(event) => {
-          if (event.currentTarget === event.target) setEditor(null);
-        }}>
-          <form className={styles.composerSheet} onSubmit={saveEditor}>
-            <div className={styles.composerSheetHead}>
-              <div>
-                <small>{editor.id ? "EDIT ITEM" : "ADD ITEM"}</small>
-                <h2>{editor.id ? editor.title : "Add to this day"}</h2>
-              </div>
-              <button type="button" onClick={() => setEditor(null)} aria-label="Close">×</button>
-            </div>
-
+      <BottomSheet
+        open={Boolean(editor)}
+        eyebrow={editor?.id ? "EDIT ITEM" : "ADD ITEM"}
+        title={editor?.id ? editor.title : "Add to this day"}
+        onClose={() => setEditor(null)}
+      >
+        {editor ? (
+          <form className={styles.sheetForm} onSubmit={saveEditor}>
             <div className={styles.field}>
               <label htmlFor="item-kind">Type</label>
               <select
@@ -340,8 +328,8 @@ export default function DayComposerPage() {
               {editor.id ? "Save changes" : "Add to day"}
             </button>
           </form>
-        </div>
-      ) : null}
+        ) : null}
+      </BottomSheet>
     </main>
   );
 }
