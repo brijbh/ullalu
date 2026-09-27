@@ -1368,3 +1368,220 @@
   height: 8px;
   margin-top: 10px;
 }
+
+
+.dayActionRow {
+  margin-top: 11px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dayActionRow:has(.dayActionButton:only-child) {
+  grid-template-columns: 1fr;
+}
+
+.dayActionButton,
+.dayPhotoButton {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #69b7c8;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #f8fcfd;
+  color: #173f6c;
+  font-size: .61rem;
+  cursor: pointer;
+}
+
+.dayActionButton strong,
+.dayPhotoButton strong {
+  font-size: .61rem;
+}
+
+.dayPhotoButton input {
+  display: none;
+}
+
+.photoCount {
+  margin-top: 7px;
+  color: #5b6f84;
+  font-size: .57rem;
+  text-align: right;
+}
+
+.composerItem {
+  cursor: pointer;
+  transition: background 140ms ease, box-shadow 140ms ease;
+}
+
+.composerItemSelected {
+  background: #f2f7fb;
+  box-shadow: inset 3px 0 0 #2d7fbe;
+}
+
+.liveAgendaCurrent {
+  background: #fff8e8;
+  box-shadow: inset 3px 0 0 #f59e0b;
+}
+
+.itemPickerSheet {
+  width: min(100%, 430px);
+  padding: 18px 18px 22px;
+  border-radius: 22px 22px 14px 14px;
+  background: #fffdf9;
+  box-shadow: 0 24px 70px rgba(13, 28, 46, .22);
+}
+
+.itemTypeGrid {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.itemTypeGrid button {
+  min-height: 116px;
+  padding: 12px 10px;
+  border: 1px solid #dbe3e9;
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  background: #fbfcfd;
+  color: #173f6c;
+  text-align: left;
+  cursor: pointer;
+}
+
+.itemTypeGrid button:hover {
+  border-color: #a8bdcc;
+  background: #f5f9fb;
+}
+
+.itemTypeGrid strong {
+  font-size: .66rem;
+}
+
+.itemTypeGrid button > span:last-child {
+  color: #718092;
+  font-size: .54rem;
+  line-height: 1.35;
+}
+
+.itemTypeIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #eaf2f7;
+}
+
+.liveDayHeader {
+  margin-top: 10px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.liveDayHeader h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: -.04em;
+}
+
+.liveDayHeader p {
+  margin: 4px 0 0;
+  color: #607286;
+  font-size: .66rem;
+}
+
+.liveAgenda {
+  margin-top: 8px;
+  overflow: hidden;
+  border: 1px solid #dde3e8;
+  border-radius: 11px;
+  background: rgba(255,255,255,.72);
+}
+
+.liveAgendaRow {
+  width: 100%;
+  min-height: 60px;
+  padding: 9px 11px;
+  border: 0;
+  border-bottom: 1px solid #e9ecef;
+  display: grid;
+  grid-template-columns: 48px 30px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.liveAgendaRow:last-child {
+  border-bottom: 0;
+}
+
+.liveAgendaRow:hover {
+  background: #f8fafc;
+}
+
+.liveAgendaTime {
+  color: #183a62;
+  font-size: .57rem;
+  font-weight: 900;
+}
+
+.liveAgendaIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: #edf3f7;
+}
+
+.liveAgendaCopy strong {
+  display: block;
+  font-size: .66rem;
+}
+
+.liveAgendaCopy span {
+  display: block;
+  margin-top: 2px;
+  color: #6c798a;
+  font-size: .54rem;
+}
+
+.liveAgendaDuration {
+  color: #66788b;
+  font-size: .55rem;
+  font-weight: 800;
+}
+
+.agendaSelected {
+  background: #f2f7fb;
+  box-shadow: inset 3px 0 0 #2d7fbe;
+}
+
+@media (max-width: 360px) {
+  .itemTypeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .liveAgendaRow {
+    grid-template-columns: 44px 28px minmax(0,1fr);
+  }
+
+  .liveAgendaDuration {
+    display: none;
+  }
+}
