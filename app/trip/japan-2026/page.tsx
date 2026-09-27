@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
-import { AppHeader, Signature, TripArt } from "../../components/JourneyUI";
+import { AppHeader, BottomNav, Signature, TripArt } from "../../components/JourneyUI";
 import {
   DEFAULT_DRAFT,
   DEFAULT_TRIP_DAYS,
@@ -104,6 +104,7 @@ export default function TripOverviewPage() {
 
           <button className={styles.addDayButton} type="button" onClick={addDay}>＋&nbsp; Add a day</button>
         </div>
+        <BottomNav active="trips" />
       </section>
     </main>
   );
