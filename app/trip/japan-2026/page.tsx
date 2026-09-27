@@ -80,7 +80,7 @@ export default function TripOverviewPage() {
           <div className={styles.daysList}>
             {days.map((day) => (
               <Link
-                href={day.day === 1 ? "/trip/japan-2026/day/1" : "/trip/japan-2026/day/1"}
+                href={`/trip/japan-2026/day/1?day=${day.day}`}
                 className={styles.dayRow}
                 key={day.day}
                 style={{ textDecoration: "none", color: "inherit" }}
