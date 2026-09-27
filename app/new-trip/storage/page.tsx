@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../JourneyFlow.module.css";
-import { AppHeader, MountainFooter, StorageIcon } from "../../components/JourneyUI";
+import { AppHeader, BottomNav, MountainFooter, StorageIcon } from "../../components/JourneyUI";
 
 type StorageChoice = "drive" | "cloud" | "device";
 
@@ -122,6 +122,7 @@ export default function StorageChoicePage() {
 
           <MountainFooter text="Ideas today. Journeys tomorrow." />
         </div>
+        <BottomNav active="trips" />
       </section>
     </main>
   );
