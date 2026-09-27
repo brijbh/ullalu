@@ -47,8 +47,8 @@ export function BottomNav({ active }: { active: "home" | "trips" | "explore" | "
   const items = [
     ["home", "⌂", "Home", "/"],
     ["trips", "▣", "My Trips", "/trips"],
-    ["explore", "◈", "Explore", "#"],
-    ["more", "•••", "More", "#"],
+    ["explore", "◈", "Explore", "/explore"],
+    ["more", "•••", "More", "/more"],
   ] as const;
 
   return (
