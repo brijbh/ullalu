@@ -297,8 +297,8 @@ export default function Home() {
       <nav className={styles.bottomNav} aria-label="Primary navigation">
         <button className={`${styles.navItem} ${styles.navActive}`} type="button"><Icon name="home"/><span>Home</span></button>
         <Link className={styles.navItem} href="/trips"><Icon name="trips"/><span>My Trips</span></Link>
-        <button className={styles.navItem} type="button"><Icon name="explore"/><span>Explore</span></button>
-        <button className={styles.navItem} type="button"><Icon name="more"/><span>More</span></button>
+        <Link className={styles.navItem} href="/explore"><Icon name="explore"/><span>Explore</span></Link>
+        <Link className={styles.navItem} href="/more"><Icon name="more"/><span>More</span></Link>
       </nav>
     </main>
   );
