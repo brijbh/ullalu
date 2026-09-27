@@ -232,6 +232,7 @@
 }
 
 .storageOption {
+  width: 100%;
   min-height: 68px;
   padding: 11px 12px;
   border: 1px solid #d2d8df;
@@ -241,6 +242,30 @@
   align-items: center;
   gap: 10px;
   background: rgba(255,255,255,.72);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.storageOption:hover {
+  border-color: #9fb3c7;
+  background: rgba(255,255,255,.9);
+}
+
+.storageOption:active {
+  transform: translateY(1px);
+}
+
+.storageOption:focus-visible {
+  outline: 2px solid #32699f;
+  outline-offset: 2px;
+}
+
+.storageOptionSelected {
+  border-color: #4f78a2;
+  background: #f7fbff;
+  box-shadow: 0 0 0 2px rgba(50,105,159,.08);
 }
 
 .storageIcon {
@@ -267,7 +292,9 @@
   font-size: .61rem;
 }
 
-.paidBadge {
+.storageCopy .paidBadge {
+  display: inline-flex;
+  margin-top: 0;
   padding: 3px 6px;
   border-radius: 999px;
   background: #f7d978;
