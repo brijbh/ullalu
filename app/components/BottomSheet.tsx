@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { type ReactNode } from "react";
 import styles from "../JourneyFlow.module.css";
 
 export default function BottomSheet({
@@ -17,36 +16,13 @@ export default function BottomSheet({
   onClose: () => void;
   children: ReactNode;
 }) {
-  const [mounted, setMounted] = useState(false);
+  if (!open) return null;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open, onClose]);
-
-  if (!mounted || !open) return null;
-
-  return createPortal(
+  return (
     <div
       className={styles.sheetBackdrop}
       role="presentation"
-      onPointerDown={(event) => {
+      onClick={(event) => {
         if (event.currentTarget === event.target) onClose();
       }}
     >
@@ -55,6 +31,7 @@ export default function BottomSheet({
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.sheetHandle} aria-hidden="true" />
         <div className={styles.composerSheetHead}>
@@ -66,7 +43,6 @@ export default function BottomSheet({
         </div>
         {children}
       </section>
-    </div>,
-    document.body,
+    </div>
   );
 }
