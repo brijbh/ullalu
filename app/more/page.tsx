@@ -5,10 +5,10 @@ import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import { BottomNav } from "../components/JourneyUI";
-import { getDraft, type TripDraft } from "../lib/tripSession";
+import { DEFAULT_DRAFT, getDraft, type TripDraft } from "../lib/tripSession";
 
 export default function MorePage() {
-  const [draft, setDraft] = useState<TripDraft>(getDraft());
+  const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
 
   useEffect(() => {
     setDraft(getDraft());
