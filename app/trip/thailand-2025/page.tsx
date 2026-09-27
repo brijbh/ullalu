@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
-import { ActionGlyph, AppHeader, Signature, TripArt, sampleSignature } from "../../components/JourneyUI";
+import { ActionGlyph, AppHeader, BottomNav, Signature, TripArt, sampleSignature } from "../../components/JourneyUI";
 import { DEFAULT_DRAFT, saveDraft } from "../../lib/tripSession";
 
 type CompletedTab = "overview" | "days" | "photos" | "questions";
@@ -156,7 +156,10 @@ export default function ThailandTripPage() {
             <section className={styles.completedPanel}>
               <h2>Trip photos</h2>
               <p>Photo attachment is not connected yet. This space is reserved for the traveller’s own photos and selected trip memories.</p>
-              <div className={styles.emptyState}>Photos will stay separate from the itinerary engine.</div>
+              <label className={styles.dayPhotoButton} style={{ width: "100%", marginTop: 12 }}>
+                <span aria-hidden="true">▣</span><strong>Upload trip photos</strong>
+                <input type="file" accept="image/*" multiple onChange={(event) => showToast(`${event.target.files?.length ?? 0} photo${(event.target.files?.length ?? 0) === 1 ? "" : "s"} selected`)} />
+              </label>
             </section>
           ) : null}
 
@@ -173,6 +176,7 @@ export default function ThailandTripPage() {
             </section>
           ) : null}
         </div>
+        <BottomNav active="trips" />
       </section>
       {toast ? <div className={styles.toast}>{toast}</div> : null}
     </main>
