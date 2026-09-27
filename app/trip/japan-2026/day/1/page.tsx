@@ -7,6 +7,7 @@ import DayCard, { type DayCardSegmentKind } from "../../../../components/DayCard
 import { AppHeader, SuggestionIcon } from "../../../../components/JourneyUI";
 import {
   DEFAULT_DAY1_SEGMENTS,
+  DEFAULT_DRAFT,
   durationLabel,
   freeTimeLabel,
   getDay1Segments,
@@ -44,7 +45,7 @@ const blankEditor: EditorState = {
 };
 
 export default function DayComposerPage() {
-  const [draft, setDraft] = useState<TripDraft>(getDraft());
+  const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
   const [segments, setSegments] = useState<PlannerSegment[]>(DEFAULT_DAY1_SEGMENTS);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [saved, setSaved] = useState(false);
