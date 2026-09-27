@@ -1,58 +1,107 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
-import { AppHeader, Signature, TripArt, sampleSignature } from "../../components/JourneyUI";
-
-const days = [
-  ["Day 1", "Tue, 29 Sep", "BLR → Tokyo", sampleSignature],
-  ["Day 2", "Wed, 30 Sep", "Tokyo", [{ kind: "travel", flex: 1 }, { kind: "activity", flex: 1.4 }, { kind: "free", flex: 1.1 }, { kind: "reservation", flex: .7 }, { kind: "rest", flex: 1.4 }]],
-  ["Day 3", "Thu, 1 Oct", "Tokyo", [{ kind: "activity", flex: 1.2 }, { kind: "free", flex: 1 }, { kind: "activity", flex: 1.1 }, { kind: "reservation", flex: .8 }, { kind: "rest", flex: 1.3 }]],
-  ["Day 4", "Fri, 2 Oct", "Tokyo → Kyoto", [{ kind: "travel", flex: 1.2 }, { kind: "activity", flex: 1.2 }, { kind: "free", flex: 1 }, { kind: "rest", flex: 1.5 }]],
-  ["Day 5", "Sat, 3 Oct", "Kyoto", [{ kind: "free", flex: 1 }, { kind: "activity", flex: 1.4 }, { kind: "reservation", flex: .8 }, { kind: "rest", flex: 1.4 }]],
-  ["Day 6", "Sun, 4 Oct", "Kyoto", [{ kind: "activity", flex: 1.2 }, { kind: "free", flex: 1 }, { kind: "activity", flex: 1.1 }, { kind: "reservation", flex: .7 }, { kind: "rest", flex: 1.5 }]],
-] as const;
+import { AppHeader, Signature, TripArt } from "../../components/JourneyUI";
+import {
+  DEFAULT_TRIP_DAYS,
+  getDraft,
+  getTripDays,
+  saveTripDays,
+  signatureFromSegments,
+  type PlannerDay,
+  type TripDraft,
+} from "../../lib/tripSession";
 
 export default function TripOverviewPage() {
+  const [draft, setDraft] = useState<TripDraft>(getDraft());
+  const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
+
+  useEffect(() => {
+    setDraft(getDraft());
+    setDays(getTripDays());
+  }, []);
+
+  const planned = useMemo(() => days.filter((day) => day.planned).length, [days]);
+  const total = Math.max(12, days.length);
+  const toPlan = Math.max(0, total - planned);
+
+  function addDay() {
+    const nextDay = days.length + 1;
+    const next: PlannerDay = {
+      day: nextDay,
+      date: `Day ${nextDay} date`,
+      route: "Not planned yet",
+      subtitle: "",
+      planned: false,
+      segments: [],
+    };
+    const updated = [...days, next];
+    setDays(updated);
+    saveTripDays(updated);
+  }
+
   return (
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader backHref="/trip/japan-2026/day/1" menu />
+          <AppHeader backHref="/" menu />
 
           <div className={`${styles.tripHead} ${parity.tripHeadIllustrated}`}>
             <div>
-              <h1>Japan 2026</h1>
-              <p>29 Sep – 12 Oct 2026</p>
+              <h1>{draft.name || "Japan 2026"}</h1>
+              <p>{draft.startDate} – {draft.endDate}</p>
               <p>Tokyo · Kyoto · Osaka</p>
             </div>
             <TripArt kind="japan" className={parity.tripHeadArt} />
           </div>
 
           <div className={styles.overviewStats}>
-            <div className={styles.statsLabels}><span>12 days</span><span>8 planned</span><span>4 to plan</span></div>
-            <div className={styles.statsBar}><span /><span /><span /></div>
-          </div>
-
-          <div className={styles.daysList}>
-            {days.map(([day, date, route, segments]) => (
-              <Link href="/trip/japan-2026/day/1" className={styles.dayRow} key={day} style={{ textDecoration: "none", color: "inherit" }}>
-                <div className={styles.dayMeta}><strong>{day}</strong><span>{date}</span></div>
-                <div className={styles.dayRoute}><Signature segments={[...segments]} /><strong>{route}</strong></div>
-                <span className={parity.rowChevron} aria-hidden="true">›</span>
-              </Link>
-            ))}
-
-            <div className={styles.dayRow}>
-              <div className={styles.dayMeta}><strong>Day 7</strong><span>Mon, 5 Oct</span></div>
-              <div className={`${styles.dayRoute} ${styles.dayRouteMuted}`}>
-                <div className={styles.signature}><span className={parity.unplannedBar} /></div>
-                <strong>Not planned yet</strong>
-              </div>
-              <span className={parity.rowChevron} aria-hidden="true">›</span>
+            <div className={styles.statsLabels}>
+              <span>{total} days</span>
+              <span>{planned} planned</span>
+              <span>{toPlan} to plan</span>
+            </div>
+            <div className={styles.statsBar}>
+              <span style={{ opacity: planned ? 1 : .25 }} />
+              <span style={{ opacity: planned ? 1 : .25 }} />
+              <span style={{ opacity: toPlan ? 1 : .2 }} />
             </div>
           </div>
 
-          <button className={styles.addDayButton} type="button">＋&nbsp; Add a day</button>
+          <div className={styles.overviewActions}>
+            <Link href="/trip/japan-2026/day/1">Continue Day 1</Link>
+            <Link href="/today">Preview live state</Link>
+          </div>
+
+          <div className={styles.daysList}>
+            {days.map((day) => (
+              <Link
+                href={day.day === 1 ? "/trip/japan-2026/day/1" : "/trip/japan-2026/day/1"}
+                className={styles.dayRow}
+                key={day.day}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <div className={styles.dayMeta}>
+                  <strong>Day {day.day}</strong>
+                  <span>{day.date}</span>
+                </div>
+                <div className={`${styles.dayRoute} ${day.planned ? "" : styles.dayRouteMuted}`}>
+                  {day.planned && day.segments.length ? (
+                    <Signature segments={signatureFromSegments(day.segments)} />
+                  ) : (
+                    <div className={styles.signature}><span className={parity.unplannedBar} /></div>
+                  )}
+                  <strong>{day.route}</strong>
+                </div>
+                <span className={parity.rowChevron} aria-hidden="true">›</span>
+              </Link>
+            ))}
+          </div>
+
+          <button className={styles.addDayButton} type="button" onClick={addDay}>＋&nbsp; Add a day</button>
         </div>
       </section>
     </main>
