@@ -3,28 +3,30 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "../../../../JourneyFlow.module.css";
-import DayCard, { type DayCardSegmentKind } from "../../../../components/DayCard";
-import { AppHeader, SuggestionIcon } from "../../../../components/JourneyUI";
+import DayCard, { type DayCardSegmentKind, type DayNavigationItem } from "../../../../components/DayCard";
+import { AppHeader, BottomNav, SuggestionIcon } from "../../../../components/JourneyUI";
 import {
-  DEFAULT_DAY1_SEGMENTS,
   DEFAULT_DRAFT,
+  DEFAULT_TRIP_DAYS,
   durationLabel,
   freeTimeLabel,
-  getDay1Segments,
   getDraft,
+  getTripDays,
   iconForKind,
   minutesBetween,
   saveDay1Segments,
+  saveTripDays,
+  type PlannerDay,
   type PlannerSegment,
   type TripDraft,
 } from "../../../../lib/tripSession";
 
-const suggestions = [
-  ["place", "Place / Activity", "Add a place to visit", "activity"],
-  ["transport", "Transport", "Add transport between places", "travel"],
-  ["reservation", "Reservation", "Add a booking (restaurant, etc.)", "reservation"],
-  ["rest", "Hotel / Rest", "Add hotel or rest time", "rest"],
-  ["buffer", "Buffer", "Add waiting, security or buffer time", "buffer"],
+const itemTypes = [
+  ["place", "Place / Activity", "Add somewhere you want to spend time", "activity"],
+  ["transport", "Transport", "Add movement between places", "travel"],
+  ["reservation", "Reservation", "Add something fixed in time", "reservation"],
+  ["rest", "Hotel / Rest", "Add hotel, sleep or rest time", "rest"],
+  ["buffer", "Buffer", "Add waiting, security or overhead", "buffer"],
 ] as const;
 
 type EditorState = {
@@ -44,25 +46,57 @@ const blankEditor: EditorState = {
   detail: "",
 };
 
+function shortDate(date: string) {
+  const parts = date.replace(",", "").split(" ");
+  return parts.slice(-2).join(" ").toUpperCase();
+}
+
 export default function DayComposerPage() {
   const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
-  const [segments, setSegments] = useState<PlannerSegment[]>(DEFAULT_DAY1_SEGMENTS);
+  const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
+  const [dayIndex, setDayIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(2);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setDraft(getDraft());
-    setSegments(getDay1Segments());
+    setDays(getTripDays());
   }, []);
 
+  const currentDay = days[dayIndex] ?? days[0] ?? DEFAULT_TRIP_DAYS[0];
+  const segments = currentDay.segments;
   const freeTime = useMemo(() => freeTimeLabel(segments), [segments]);
 
-  function openNew(kind: DayCardSegmentKind) {
-    const suggestion = suggestions.find((item) => item[3] === kind);
+  function changeDay(nextIndex: number) {
+    if (nextIndex < 0 || nextIndex >= days.length) return;
+    setDayIndex(nextIndex);
+    setSelectedIndex(undefined);
+    setEditor(null);
+    setPickerOpen(false);
+  }
+
+  function commitSegments(updated: PlannerSegment[]) {
+    const updatedDays = days.map((day, index) => (
+      index === dayIndex
+        ? { ...day, segments: updated, planned: updated.length > 0, route: day.route === "Not planned yet" ? "Plan this day" : day.route }
+        : day
+    ));
+    setDays(updatedDays);
+    saveTripDays(updatedDays);
+    if (currentDay.day === 1) saveDay1Segments(updated);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 1400);
+  }
+
+  function chooseItemType(kind: DayCardSegmentKind) {
+    const item = itemTypes.find((entry) => entry[3] === kind);
+    setPickerOpen(false);
     setEditor({
       ...blankEditor,
       kind,
-      title: suggestion ? suggestion[1].replace("Place / Activity", "Activity").replace("Hotel / Rest", "Hotel / Rest") : "",
+      title: item ? item[1].replace("Place / Activity", "Activity") : "",
     });
   }
 
@@ -80,6 +114,7 @@ export default function DayComposerPage() {
   function saveEditor(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editor) return;
+
     const minutes = minutesBetween(editor.start, editor.end);
     const next: PlannerSegment = {
       id: editor.id ?? `segment-${Date.now()}`,
@@ -99,23 +134,37 @@ export default function DayComposerPage() {
       : [...segments, next];
 
     updated.sort((a, b) => a.start.localeCompare(b.start));
-    setSegments(updated);
-    saveDay1Segments(updated);
+    commitSegments(updated);
     setEditor(null);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1600);
+    setSelectedIndex(Math.max(0, updated.findIndex((segment) => segment.id === next.id)));
   }
 
   function removeSegment(id: string) {
     const updated = segments.filter((segment) => segment.id !== id);
-    setSegments(updated);
-    saveDay1Segments(updated);
+    commitSegments(updated);
+    setSelectedIndex(undefined);
   }
 
-  function resetDay() {
-    setSegments(DEFAULT_DAY1_SEGMENTS);
-    saveDay1Segments(DEFAULT_DAY1_SEGMENTS);
-  }
+  const dayNavigation: DayNavigationItem[] = [
+    {
+      label: "PREVIOUS",
+      date: dayIndex > 0 ? shortDate(days[dayIndex - 1].date) : "—",
+      disabled: dayIndex === 0,
+      onClick: () => changeDay(dayIndex - 1),
+    },
+    {
+      label: `DAY ${currentDay.day}`,
+      date: shortDate(currentDay.date),
+      active: true,
+      onClick: () => setSelectedIndex(undefined),
+    },
+    {
+      label: "NEXT",
+      date: dayIndex < days.length - 1 ? shortDate(days[dayIndex + 1].date) : "—",
+      disabled: dayIndex >= days.length - 1,
+      onClick: () => changeDay(dayIndex + 1),
+    },
+  ];
 
   return (
     <main className={styles.screen}>
@@ -126,7 +175,7 @@ export default function DayComposerPage() {
           <div className={styles.tripHead}>
             <div>
               <h1>{draft.name || "Japan 2026"}</h1>
-              <p>Build Day 1 · Tue, 29 Sep 2026</p>
+              <p>Build Day {currentDay.day} · {currentDay.date}</p>
             </div>
             {saved ? <span className={styles.savedPill}>Saved</span> : null}
           </div>
@@ -134,41 +183,36 @@ export default function DayComposerPage() {
           <div className={styles.composerCardWrap}>
             <DayCard
               mode="planning"
-              dayLabel="TUE · 29 SEP"
-              route="Bengaluru → Tokyo"
-              subtitle="Flight to Tokyo, arrive and rest"
+              dayLabel={currentDay.date.toUpperCase()}
+              route={currentDay.route}
+              subtitle={currentDay.subtitle || "Start shaping this day."}
               freeTime={freeTime}
               segments={segments}
-              selectedIndex={Math.min(2, Math.max(0, segments.length - 1))}
-              note="Immigration may take time."
+              selectedIndex={selectedIndex}
+              onSelectSegment={setSelectedIndex}
+              dayNavigation={dayNavigation}
+              note={currentDay.day === 1 ? "Immigration may take time." : undefined}
             />
           </div>
 
-          <button className={styles.secondaryButton} type="button" onClick={() => openNew("activity")}>
-            <span aria-hidden="true">＋</span> Add to this day
-          </button>
-
-          <p className={styles.sectionLabel}>ADD AN ITEM</p>
-          <div className={styles.suggestionList}>
-            {suggestions.map(([iconKind, title, detail, segmentKind]) => (
-              <button className={styles.suggestionButton} type="button" key={title} onClick={() => openNew(segmentKind)}>
-                <span className={styles.suggestionIcon}><SuggestionIcon kind={iconKind} /></span>
-                <span className={styles.suggestionCopy}>
-                  <strong>{title}</strong>
-                  <span>{detail}</span>
-                </span>
-                <b className={styles.suggestionArrow} aria-hidden="true">›</b>
-              </button>
-            ))}
+          <div className={styles.dayActionRow}>
+            <button className={styles.dayActionButton} type="button" onClick={() => setPickerOpen(true)}>
+              <span aria-hidden="true">＋</span>
+              <strong>Add item</strong>
+            </button>
           </div>
 
           <div className={styles.composerSectionHead}>
-            <p className={styles.sectionLabel}>DAY ITEMS</p>
-            <button type="button" onClick={resetDay}>Reset sample</button>
+            <p className={styles.sectionLabel}>ACTIVITIES FOR THE DAY</p>
           </div>
+
           <div className={styles.composerItems}>
-            {segments.map((segment) => (
-              <article className={styles.composerItem} key={segment.id}>
+            {segments.length ? segments.map((segment, index) => (
+              <article
+                className={`${styles.composerItem} ${selectedIndex === index ? styles.composerItemSelected : ""}`}
+                key={segment.id}
+                onClick={() => setSelectedIndex(index)}
+              >
                 <span className={styles.composerItemIcon} aria-hidden="true">{segment.icon}</span>
                 <span className={styles.composerItemCopy}>
                   <strong>{segment.title}</strong>
@@ -176,11 +220,13 @@ export default function DayComposerPage() {
                   <small>{segment.detail}</small>
                 </span>
                 <span className={styles.composerItemActions}>
-                  <button type="button" onClick={() => openEdit(segment)}>Edit</button>
-                  <button type="button" onClick={() => removeSegment(segment.id)} aria-label={`Delete ${segment.title}`}>×</button>
+                  <button type="button" onClick={(event) => { event.stopPropagation(); openEdit(segment); }}>Edit</button>
+                  <button type="button" onClick={(event) => { event.stopPropagation(); removeSegment(segment.id); }} aria-label={`Delete ${segment.title}`}>×</button>
                 </span>
               </article>
-            ))}
+            )) : (
+              <div className={styles.emptyState}>Nothing planned yet. Add the first item to shape this day.</div>
+            )}
           </div>
 
           <div className={styles.freeTime}>
@@ -189,10 +235,36 @@ export default function DayComposerPage() {
           </div>
 
           <Link className={styles.primaryButton} href="/trip/japan-2026">
-            Done with Day 1 <span aria-hidden="true">→</span>
+            Done with Day {currentDay.day} <span aria-hidden="true">→</span>
           </Link>
         </div>
+        <BottomNav active="trips" />
       </section>
+
+      {pickerOpen ? (
+        <div className={styles.composerOverlay} role="presentation" onMouseDown={(event) => {
+          if (event.currentTarget === event.target) setPickerOpen(false);
+        }}>
+          <section className={styles.itemPickerSheet} aria-label="Choose item type">
+            <div className={styles.composerSheetHead}>
+              <div>
+                <small>ADD ITEM</small>
+                <h2>What are you adding?</h2>
+              </div>
+              <button type="button" onClick={() => setPickerOpen(false)} aria-label="Close">×</button>
+            </div>
+            <div className={styles.itemTypeGrid}>
+              {itemTypes.map(([iconKind, title, detail, segmentKind]) => (
+                <button type="button" key={title} onClick={() => chooseItemType(segmentKind)}>
+                  <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
+                  <strong>{title}</strong>
+                  <span>{detail}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       {editor ? (
         <div className={styles.composerOverlay} role="presentation" onMouseDown={(event) => {
@@ -202,7 +274,7 @@ export default function DayComposerPage() {
             <div className={styles.composerSheetHead}>
               <div>
                 <small>{editor.id ? "EDIT ITEM" : "ADD ITEM"}</small>
-                <h2>{editor.id ? editor.title : "Add to Day 1"}</h2>
+                <h2>{editor.id ? editor.title : "Add to this day"}</h2>
               </div>
               <button type="button" onClick={() => setEditor(null)} aria-label="Close">×</button>
             </div>
@@ -220,7 +292,6 @@ export default function DayComposerPage() {
                 <option value="reservation">Reservation</option>
                 <option value="rest">Hotel / Rest</option>
                 <option value="buffer">Buffer</option>
-                <option value="free">Free time</option>
               </select>
             </div>
 
