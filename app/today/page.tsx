@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import DayCard, { type DayCardSegment, type DayCardSegmentKind, type DayNavigationItem } from "../components/DayCard";
+import BottomSheet from "../components/BottomSheet";
 import { BottomNav, SuggestionIcon } from "../components/JourneyUI";
 
 type LiveDay = {
@@ -192,30 +193,22 @@ export default function TodayPage() {
         <BottomNav active="home" />
       </section>
 
-      {pickerOpen ? (
-        <div className={styles.composerOverlay} role="presentation" onMouseDown={(event) => {
-          if (event.currentTarget === event.target) setPickerOpen(false);
-        }}>
-          <section className={styles.itemPickerSheet} aria-label="Choose item type">
-            <div className={styles.composerSheetHead}>
-              <div>
-                <small>ADD ITEM</small>
-                <h2>Add to this day</h2>
-              </div>
-              <button type="button" onClick={() => setPickerOpen(false)} aria-label="Close">×</button>
-            </div>
-            <div className={styles.itemTypeGrid}>
-              {itemTypes.map(([iconKind, title, kind]) => (
-                <button type="button" key={title} onClick={() => addQuickItem(kind, title)}>
-                  <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
-                  <strong>{title}</strong>
-                  <span>Add a quick item now; fine-tune it later in the planner.</span>
-                </button>
-              ))}
-            </div>
-          </section>
+      <BottomSheet
+        open={pickerOpen}
+        eyebrow="ADD ITEM"
+        title="Add to this day"
+        onClose={() => setPickerOpen(false)}
+      >
+        <div className={styles.itemTypeGrid}>
+          {itemTypes.map(([iconKind, title, kind]) => (
+            <button type="button" key={title} onClick={() => addQuickItem(kind, title)}>
+              <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
+              <strong>{title}</strong>
+              <span>Add a quick item now; fine-tune it later in the planner.</span>
+            </button>
+          ))}
         </div>
-      ) : null}
+      </BottomSheet>
     </main>
   );
 }
