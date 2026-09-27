@@ -6,6 +6,7 @@ import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
 import { AppHeader, Signature, TripArt } from "../../components/JourneyUI";
 import {
+  DEFAULT_DRAFT,
   DEFAULT_TRIP_DAYS,
   getDraft,
   getTripDays,
@@ -16,7 +17,7 @@ import {
 } from "../../lib/tripSession";
 
 export default function TripOverviewPage() {
-  const [draft, setDraft] = useState<TripDraft>(getDraft());
+  const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
   const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
 
   useEffect(() => {
