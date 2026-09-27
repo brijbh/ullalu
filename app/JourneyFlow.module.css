@@ -866,15 +866,20 @@
 }
 
 .actionRow {
+  width: 100%;
   min-height:48px;
   padding:10px 12px;
+  border: 0;
   border-bottom:1px solid #e7e9eb;
   display:grid;
   grid-template-columns:24px minmax(0,1fr) 18px;
   align-items:center;
   gap:8px;
+  background: transparent;
   color:#173f6c;
   font-size:.68rem;
+  text-align: left;
+  cursor: pointer;
 }
 
 .actionRow:last-child { border-bottom:0; }
@@ -1356,4 +1361,10 @@
   font-size: .62rem;
   box-shadow: 0 8px 22px rgba(20,60,105,.22);
   transform: translateX(-50%);
+}
+
+
+.exploreCardBody .signature {
+  height: 8px;
+  margin-top: 10px;
 }
