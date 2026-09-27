@@ -1,31 +1,18 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../JourneyFlow.module.css";
 import { AppHeader, MountainFooter } from "../components/JourneyUI";
-
-type TripDraft = {
-  name: string;
-  startDate: string;
-  endDate: string;
-  startingPlace: string;
-  endingPlace: string;
-  returnToStart: boolean;
-};
-
-const initialDraft: TripDraft = {
-  name: "Japan 2026",
-  startDate: "29 Sep 2026",
-  endDate: "12 Oct 2026",
-  startingPlace: "Bengaluru (BLR)",
-  endingPlace: "Tokyo (NRT)",
-  returnToStart: true,
-};
+import { DEFAULT_DRAFT, getDraft, saveDraft, type TripDraft } from "../lib/tripSession";
 
 export default function NewTripPage() {
   const router = useRouter();
-  const [draft, setDraft] = useState<TripDraft>(initialDraft);
+  const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
+
+  useEffect(() => {
+    setDraft(getDraft());
+  }, []);
 
   function update<K extends keyof TripDraft>(key: K, value: TripDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -41,7 +28,7 @@ export default function NewTripPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    sessionStorage.setItem("ullalu:draft-trip", JSON.stringify(draft));
+    saveDraft(draft);
     router.push("/new-trip/storage");
   }
 
