@@ -62,7 +62,14 @@ export default function DayComposerPage() {
 
   useEffect(() => {
     setDraft(getDraft());
-    setDays(getTripDays());
+    const loadedDays = getTripDays();
+    setDays(loadedDays);
+
+    const requestedDay = Number(new URLSearchParams(window.location.search).get("day"));
+    if (Number.isFinite(requestedDay) && requestedDay >= 1 && requestedDay <= loadedDays.length) {
+      setDayIndex(requestedDay - 1);
+      setSelectedIndex(undefined);
+    }
   }, []);
 
   const currentDay = days[dayIndex] ?? days[0] ?? DEFAULT_TRIP_DAYS[0];
