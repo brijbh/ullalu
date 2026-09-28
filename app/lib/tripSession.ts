@@ -183,12 +183,30 @@ export function parseClockMinutes(value: string) {
   return hours * 60 + minutes;
 }
 
-export function minutesBetween(start: string, end: string) {
+export function isNextDayTime(start: string, end: string) {
   const startMinutes = parseClockMinutes(start);
-  let endMinutes = parseClockMinutes(end);
-  if (startMinutes === null || endMinutes === null) return 0;
-  if (end.includes("+1")) endMinutes += 24 * 60;
-  return Math.max(0, endMinutes - startMinutes);
+  const endMinutes = parseClockMinutes(end);
+  if (startMinutes === null || endMinutes === null) return false;
+  return end.includes("+1") || endMinutes < startMinutes;
+}
+
+export function normalizeEndTime(start: string, end: string) {
+  const cleanEnd = end.replace(/\s*\+1\s*$/, "");
+  return isNextDayTime(start, cleanEnd) ? `${cleanEnd} +1` : cleanEnd;
+}
+
+function intervalForSegment(segment: Pick<PlannerSegment, "start" | "end">) {
+  const start = parseClockMinutes(segment.start);
+  let end = parseClockMinutes(segment.end);
+  if (start === null || end === null) return null;
+  if (segment.end.includes("+1") || end < start) end += 24 * 60;
+  return { start, end };
+}
+
+export function minutesBetween(start: string, end: string) {
+  const interval = intervalForSegment({ start, end });
+  if (!interval) return 0;
+  return Math.max(0, interval.end - interval.start);
 }
 
 export function durationLabel(minutes: number) {
@@ -218,26 +236,37 @@ export function validatePlannerSegment(
     return "Enter a valid start and end time.";
   }
 
-  if (end <= start) {
-    return "End time must be later than start time on the same itinerary day.";
+  if (end === start) {
+    return "Start and end time cannot be the same.";
+  }
+
+  const candidateInterval = intervalForSegment({
+    start: candidate.start,
+    end: normalizeEndTime(candidate.start, candidate.end),
+  });
+
+  if (!candidateInterval) {
+    return "Enter a valid start and end time.";
   }
 
   const conflict = segments
     .filter((segment) => segment.kind !== "free" && segment.id !== candidate.id)
     .find((segment) => {
-      const otherStart = parseClockMinutes(segment.start);
-      const otherEnd = parseClockMinutes(segment.end);
-      if (otherStart === null || otherEnd === null || otherEnd <= otherStart) return false;
-      return start < otherEnd && end > otherStart;
+      const other = intervalForSegment(segment);
+      if (!other) return false;
+      return candidateInterval.start < other.end && candidateInterval.end > other.start;
     });
 
   if (!conflict) return null;
 
-  if (candidate.start === conflict.start && candidate.end === conflict.end) {
+  const conflictEnd = normalizeEndTime(conflict.start, conflict.end);
+  const candidateEnd = normalizeEndTime(candidate.start, candidate.end);
+
+  if (candidate.start === conflict.start && candidateEnd === conflictEnd) {
     return `That time slot is already used by “${conflict.title}”.`;
   }
 
-  return `This overlaps “${conflict.title}” (${conflict.start}–${conflict.end}). Adjust one of the times first.`;
+  return `This overlaps “${conflict.title}” (${conflict.start}–${conflictEnd}). Adjust one of the times first.`;
 }
 
 function clockLabel(minutes: number) {
@@ -259,12 +288,11 @@ export function withCalculatedFreeTime(
   let freeIndex = 0;
 
   for (const segment of authored) {
-    const start = parseClockMinutes(segment.start);
-    const end = parseClockMinutes(segment.end);
-    if (start === null || end === null || end <= start) continue;
+    const interval = intervalForSegment(segment);
+    if (!interval) continue;
 
-    const visibleStart = Math.max(dayStartMinutes, start);
-    const visibleEnd = Math.min(dayEndMinutes, end);
+    const visibleStart = Math.max(dayStartMinutes, interval.start);
+    const visibleEnd = Math.min(dayEndMinutes, interval.end);
 
     if (visibleStart > cursor) {
       const freeMinutes = visibleStart - cursor;
