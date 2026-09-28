@@ -5,7 +5,6 @@ import Link from "next/link";
 import styles from "../../../../JourneyFlow.module.css";
 import DayCard, { type DayCardSegmentKind, type DayNavigationItem } from "../../../../components/DayCard";
 import { AppHeader, BottomNav, SuggestionIcon } from "../../../../components/JourneyUI";
-import TravelStatusBar from "../../../../components/TravelStatusBar";
 import {
   DEFAULT_DRAFT,
   DEFAULT_TRIP_DAYS,
@@ -230,8 +229,7 @@ export default function DayComposerPage() {
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader backHref="/trip/japan-2026" menu />
-          <TravelStatusBar destination={currentDay.day >= 4 ? "Kyoto" : "Tokyo"} />
+          <AppHeader backHref="/trip/japan-2026" travelDestination={currentDay.day >= 4 ? "Kyoto" : "Tokyo"} />
 
           <div className={styles.tripHead}>
             <div>

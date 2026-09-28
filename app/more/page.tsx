@@ -87,6 +87,7 @@ export default function MorePage() {
             <p><strong>{draft.name || "Untitled trip"}</strong></p>
             <p>{draft.startingPlace || "Starting place"} → {draft.endingPlace || "Ending place"}</p>
           </section>
+          <p className={styles.weatherAttribution}>Current weather data: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo</a></p>
         </div>
         <BottomNav active="more" />
       </section>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
+import TravelStatusBar from "./TravelStatusBar";
 
 export type SignatureKind = "travel" | "activity" | "free" | "reservation" | "rest" | "buffer";
 
@@ -15,24 +16,28 @@ export function AppHeader({
   menu = false,
   showBack = true,
   action,
+  travelDestination,
 }: {
   backHref?: string;
   note?: string;
   menu?: boolean;
   showBack?: boolean;
   action?: "menu" | "search";
+  travelDestination?: "Tokyo" | "Kyoto";
 }) {
   const resolvedAction = action ?? (menu ? "menu" : undefined);
 
   return (
-    <header className={styles.appHeader}>
+    <header className={`${styles.appHeader} ${travelDestination ? styles.appHeaderTravel : ""}`}>
       {showBack ? (
         <Link className={styles.backButton} href={backHref} aria-label="Back">←</Link>
       ) : (
         <span className={parity.headerSpacer} aria-hidden="true" />
       )}
-      <Link className={styles.wordmark} href="/">Ullalu</Link>
-      {resolvedAction === "menu" ? (
+      <Link className={`${styles.wordmark} ${travelDestination ? styles.wordmarkTravel : ""}`} href="/">Ullalu</Link>
+      {travelDestination ? (
+        <TravelStatusBar destination={travelDestination} />
+      ) : resolvedAction === "menu" ? (
         <button className={styles.menuButton} type="button" aria-label="More options">•••</button>
       ) : resolvedAction === "search" ? (
         <button className={styles.menuButton} type="button" aria-label="Search">⌕</button>

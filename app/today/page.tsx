@@ -1,12 +1,9 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
-import parity from "../JourneyParity.module.css";
 import DayCard, { type DayCardSegment, type DayCardSegmentKind, type DayNavigationItem } from "../components/DayCard";
-import { BottomNav, SuggestionIcon } from "../components/JourneyUI";
-import TravelStatusBar from "../components/TravelStatusBar";
+import { AppHeader, BottomNav, SuggestionIcon } from "../components/JourneyUI";
 import { durationLabel, iconForKind, minutesBetween } from "../lib/tripSession";
 
 type LiveDay = {
@@ -127,11 +124,7 @@ export default function TodayPage() {
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <header className={parity.simpleHeader}>
-            <Link className={styles.wordmark} href="/">Ullalu</Link>
-            <button className={styles.menuButton} type="button" aria-label="More options">•••</button>
-          </header>
-          <TravelStatusBar destination={dayOffset === 1 ? "Kyoto" : "Tokyo"} />
+          <AppHeader backHref="/trip/japan-2026" travelDestination={dayOffset === 1 ? "Kyoto" : "Tokyo"} />
 
           <div className={styles.liveDayHeader}>
             <div>

@@ -32,28 +32,18 @@
   padding: 18px 20px 46px;
 }
 
-.travelStatusDock {
-  position: sticky;
-  top: env(safe-area-inset-top, 0px);
-  z-index: 30;
-  margin: 4px -8px 14px;
-  padding: 6px 8px 5px;
-  background: rgba(251, 248, 242, .96);
-  backdrop-filter: blur(12px);
-  border-radius: 0 0 14px 14px;
-}
-
 .travelStatusBar {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  width: 194px;
+  gap: 6px;
 }
 
 .travelStatusCard {
   min-width: 0;
-  padding: 8px 10px 7px;
+  padding: 6px 7px;
   border: 1px solid #d2dde5;
-  border-radius: 13px;
+  border-radius: 11px;
   background: #fffdf9;
   box-shadow: 0 2px 9px rgba(16, 46, 83, .04);
 }
@@ -69,41 +59,32 @@
 
 .travelStatusTop {
   color: #4d6580;
-  font-size: .58rem;
+  font-size: .49rem;
   font-weight: 800;
   letter-spacing: .09em;
 }
 
 .travelStatusTop strong {
   color: #173e69;
-  font-size: .74rem;
+  font-size: .65rem;
   letter-spacing: 0;
 }
 
 .travelStatusBottom {
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .travelStatusBottom strong {
   color: #143b69;
-  font-size: .92rem;
+  font-size: .75rem;
   font-variant-numeric: tabular-nums;
 }
 
 .travelStatusBottom span {
   overflow: hidden;
   color: #667486;
-  font-size: .56rem;
+  font-size: .48rem;
   text-overflow: ellipsis;
-}
-
-.travelStatusCredit {
-  display: block;
-  margin-top: 3px;
-  color: #718093;
-  font-size: .47rem;
-  text-align: right;
-  text-decoration: none;
 }
 
 .appHeader {
@@ -112,6 +93,53 @@
   grid-template-columns: 34px minmax(0, 1fr) auto;
   align-items: start;
   gap: 9px;
+}
+
+.appHeaderTravel {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 30;
+  min-height: 54px;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  margin: -18px -20px 15px;
+  padding: 18px 20px 8px;
+  background: rgba(251, 248, 242, .97);
+  backdrop-filter: blur(12px);
+}
+
+.appHeaderTravel .wordmarkTravel {
+  min-width: 0;
+  font-size: 2rem;
+  white-space: nowrap;
+}
+
+.weatherAttribution {
+  margin: 18px 0 0;
+  color: #667486;
+  font-size: .62rem;
+}
+
+.weatherAttribution a { color: #214c78; }
+
+@media (max-width: 380px) {
+  .appHeaderTravel {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 4px;
+    padding-inline: 14px;
+  }
+
+  .appHeaderTravel .backButton { width: 22px; }
+  .appHeaderTravel .wordmarkTravel { font-size: 1.55rem; }
+  .travelStatusBar { width: 158px; gap: 4px; }
+  .travelStatusCard { padding: 5px; }
+  .travelStatusBottom span { display: none; }
+}
+
+@media (max-width: 320px) {
+  .appHeaderTravel .wordmarkTravel { font-size: 1.3rem; }
+  .travelStatusBar { width: 148px; }
 }
 
 .backButton,

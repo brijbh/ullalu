@@ -36,9 +36,9 @@ function cachedTemperature(place: Place) {
 function localTime(now: Date | null, zone: string) {
   if (!now) return "--:--";
   return new Intl.DateTimeFormat("en-IN", {
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
-    hour12: true,
+    hour12: false,
     timeZone: zone,
   }).format(now);
 }
@@ -70,10 +70,10 @@ function StatusCard({ label, place, now, temperature }: {
   temperature?: number;
 }) {
   return (
-    <div className={styles.travelStatusCard}>
+    <div className={styles.travelStatusCard} aria-label={`${label}, ${place.name}: ${localTime(now, place.zone)}, ${temperature === undefined ? "temperature unavailable" : `${Math.round(temperature)} degrees Celsius`}`}>
       <div className={styles.travelStatusTop}>
         <span>{label}</span>
-        <strong>{temperature === undefined ? "—°" : `${Math.round(temperature)}°C`}</strong>
+        <strong>{temperature === undefined ? "—°" : `${Math.round(temperature)}°`}</strong>
       </div>
       <div className={styles.travelStatusBottom}>
         <strong>{localTime(now, place.zone)}</strong>
@@ -123,12 +123,9 @@ export default function TravelStatusBar({ destination = "Tokyo" }: { destination
   }, [currentPlace]);
 
   return (
-    <aside className={styles.travelStatusDock} aria-label="Current time and temperature at home and in Japan">
-      <div className={styles.travelStatusBar}>
-        <StatusCard label="HOME" place={home} now={now} temperature={temperatures.home} />
-        <StatusCard label="JAPAN" place={currentPlace} now={now} temperature={temperatures.destination} />
-      </div>
-      <a className={styles.travelStatusCredit} href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather: Open-Meteo</a>
+    <aside className={styles.travelStatusBar} aria-label="Current time and temperature at home and in Japan">
+      <StatusCard label="HOME" place={home} now={now} temperature={temperatures.home} />
+      <StatusCard label="JAPAN" place={currentPlace} now={now} temperature={temperatures.destination} />
     </aside>
   );
 }
