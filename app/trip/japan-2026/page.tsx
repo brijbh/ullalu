@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
 import { AppHeader, BottomNav, Signature, TripArt } from "../../components/JourneyUI";
+import TravelStatusBar from "../../components/TravelStatusBar";
 import {
   DEFAULT_DRAFT,
   DEFAULT_TRIP_DAYS,
@@ -46,6 +47,7 @@ export default function TripOverviewPage() {
       <section className={styles.phonePage}>
         <div className={styles.content}>
           <AppHeader backHref="/" menu />
+          <TravelStatusBar />
 
           <div className={`${styles.tripHead} ${parity.tripHeadIllustrated}`}>
             <div>

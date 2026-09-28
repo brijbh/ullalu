@@ -21,7 +21,7 @@
   width: min(100%, 430px);
   min-height: calc(100vh - 18px);
   margin: 0 auto;
-  overflow: hidden;
+  overflow: clip;
   background:
     radial-gradient(circle at 4% 0%, rgba(216, 222, 220, .30), transparent 18%),
     linear-gradient(180deg, #fffdf9 0%, #f9f5ed 100%);
@@ -30,6 +30,80 @@
 
 .content {
   padding: 18px 20px 46px;
+}
+
+.travelStatusDock {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 30;
+  margin: 4px -8px 14px;
+  padding: 6px 8px 5px;
+  background: rgba(251, 248, 242, .96);
+  backdrop-filter: blur(12px);
+  border-radius: 0 0 14px 14px;
+}
+
+.travelStatusBar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.travelStatusCard {
+  min-width: 0;
+  padding: 8px 10px 7px;
+  border: 1px solid #d2dde5;
+  border-radius: 13px;
+  background: #fffdf9;
+  box-shadow: 0 2px 9px rgba(16, 46, 83, .04);
+}
+
+.travelStatusTop,
+.travelStatusBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.travelStatusTop {
+  color: #4d6580;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.travelStatusTop strong {
+  color: #173e69;
+  font-size: .74rem;
+  letter-spacing: 0;
+}
+
+.travelStatusBottom {
+  margin-top: 4px;
+}
+
+.travelStatusBottom strong {
+  color: #143b69;
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.travelStatusBottom span {
+  overflow: hidden;
+  color: #667486;
+  font-size: .56rem;
+  text-overflow: ellipsis;
+}
+
+.travelStatusCredit {
+  display: block;
+  margin-top: 3px;
+  color: #718093;
+  font-size: .47rem;
+  text-align: right;
+  text-decoration: none;
 }
 
 .appHeader {

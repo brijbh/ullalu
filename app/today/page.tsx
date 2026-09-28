@@ -6,6 +6,7 @@ import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import DayCard, { type DayCardSegment, type DayCardSegmentKind, type DayNavigationItem } from "../components/DayCard";
 import { BottomNav, SuggestionIcon } from "../components/JourneyUI";
+import TravelStatusBar from "../components/TravelStatusBar";
 import { durationLabel, iconForKind, minutesBetween } from "../lib/tripSession";
 
 type LiveDay = {
@@ -130,15 +131,12 @@ export default function TodayPage() {
             <Link className={styles.wordmark} href="/">Ullalu</Link>
             <button className={styles.menuButton} type="button" aria-label="More options">•••</button>
           </header>
+          <TravelStatusBar destination={dayOffset === 1 ? "Kyoto" : "Tokyo"} />
 
           <div className={styles.liveDayHeader}>
             <div>
               <h1>You are in Japan</h1>
               <p>Day 4 · Fri, 2 Oct 2026</p>
-            </div>
-            <div className={styles.weather}>
-              <span className={parity.weatherIcon} aria-hidden="true">☀</span>
-              <span className={parity.weatherStack}><strong>22°C</strong><small>Tokyo</small></span>
             </div>
           </div>
 
