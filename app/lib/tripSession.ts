@@ -21,6 +21,7 @@ export type PlannerDay = {
   subtitle: string;
   planned: boolean;
   segments: PlannerSegment[];
+  note?: string;
 };
 
 export const DEFAULT_DRAFT: TripDraft = {
@@ -173,17 +174,21 @@ export function iconForKind(kind: DayCardSegmentKind) {
   return "◷";
 }
 
+export function parseClockMinutes(value: string) {
+  const match = value.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
 export function minutesBetween(start: string, end: string) {
-  const parse = (value: string) => {
-    const match = value.match(/^(\d{1,2}):(\d{2})/);
-    if (!match) return null;
-    return Number(match[1]) * 60 + Number(match[2]);
-  };
-  const startMinutes = parse(start);
-  let endMinutes = parse(end);
-  if (startMinutes === null || endMinutes === null) return 60;
-  if (end.includes("+1") || endMinutes < startMinutes) endMinutes += 24 * 60;
-  return Math.max(5, endMinutes - startMinutes);
+  const startMinutes = parseClockMinutes(start);
+  let endMinutes = parseClockMinutes(end);
+  if (startMinutes === null || endMinutes === null) return 0;
+  if (end.includes("+1")) endMinutes += 24 * 60;
+  return Math.max(0, endMinutes - startMinutes);
 }
 
 export function durationLabel(minutes: number) {
@@ -193,11 +198,117 @@ export function durationLabel(minutes: number) {
   return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
 }
 
+export function sortPlannerSegments(segments: PlannerSegment[]) {
+  return [...segments].sort((a, b) => {
+    const aStart = parseClockMinutes(a.start) ?? Number.MAX_SAFE_INTEGER;
+    const bStart = parseClockMinutes(b.start) ?? Number.MAX_SAFE_INTEGER;
+    if (aStart !== bStart) return aStart - bStart;
+    return a.end.localeCompare(b.end);
+  });
+}
+
+export function validatePlannerSegment(
+  candidate: Pick<PlannerSegment, "id" | "start" | "end" | "title">,
+  segments: PlannerSegment[],
+) {
+  const start = parseClockMinutes(candidate.start);
+  const end = parseClockMinutes(candidate.end);
+
+  if (start === null || end === null) {
+    return "Enter a valid start and end time.";
+  }
+
+  if (end <= start) {
+    return "End time must be later than start time on the same itinerary day.";
+  }
+
+  const conflict = segments
+    .filter((segment) => segment.kind !== "free" && segment.id !== candidate.id)
+    .find((segment) => {
+      const otherStart = parseClockMinutes(segment.start);
+      const otherEnd = parseClockMinutes(segment.end);
+      if (otherStart === null || otherEnd === null || otherEnd <= otherStart) return false;
+      return start < otherEnd && end > otherStart;
+    });
+
+  if (!conflict) return null;
+
+  if (candidate.start === conflict.start && candidate.end === conflict.end) {
+    return `That time slot is already used by “${conflict.title}”.`;
+  }
+
+  return `This overlaps “${conflict.title}” (${conflict.start}–${conflict.end}). Adjust one of the times first.`;
+}
+
+function clockLabel(minutes: number) {
+  const bounded = Math.max(0, Math.min(24 * 60, minutes));
+  if (bounded === 24 * 60) return "24:00";
+  const hours = Math.floor(bounded / 60);
+  const mins = bounded % 60;
+  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+}
+
+export function withCalculatedFreeTime(
+  segments: PlannerSegment[],
+  dayStartMinutes = 6 * 60,
+  dayEndMinutes = 24 * 60,
+) {
+  const authored = sortPlannerSegments(segments.filter((segment) => segment.kind !== "free"));
+  const generated: PlannerSegment[] = [];
+  let cursor = dayStartMinutes;
+  let freeIndex = 0;
+
+  for (const segment of authored) {
+    const start = parseClockMinutes(segment.start);
+    const end = parseClockMinutes(segment.end);
+    if (start === null || end === null || end <= start) continue;
+
+    const visibleStart = Math.max(dayStartMinutes, start);
+    const visibleEnd = Math.min(dayEndMinutes, end);
+
+    if (visibleStart > cursor) {
+      const freeMinutes = visibleStart - cursor;
+      generated.push({
+        id: `auto-free-${freeIndex++}-${cursor}-${visibleStart}`,
+        kind: "free",
+        icon: "◷",
+        title: "Free time",
+        duration: durationLabel(freeMinutes),
+        start: clockLabel(cursor),
+        end: clockLabel(visibleStart),
+        detail: "Automatically calculated",
+        weight: Math.max(.25, freeMinutes / 60),
+        width: Math.max(132, Math.min(184, 122 + freeMinutes / 8)),
+      });
+    }
+
+    cursor = Math.max(cursor, visibleEnd);
+  }
+
+  if (cursor < dayEndMinutes) {
+    const freeMinutes = dayEndMinutes - cursor;
+    generated.push({
+      id: `auto-free-${freeIndex}-${cursor}-${dayEndMinutes}`,
+      kind: "free",
+      icon: "◷",
+      title: "Free time",
+      duration: durationLabel(freeMinutes),
+      start: clockLabel(cursor),
+      end: clockLabel(dayEndMinutes),
+      detail: "Automatically calculated",
+      weight: Math.max(.25, freeMinutes / 60),
+      width: Math.max(132, Math.min(184, 122 + freeMinutes / 8)),
+    });
+  }
+
+  return sortPlannerSegments([...authored, ...generated]);
+}
+
 export function freeTimeLabel(segments: PlannerSegment[]) {
-  const freeMinutes = segments
+  const freeMinutes = withCalculatedFreeTime(segments)
     .filter((segment) => segment.kind === "free")
     .reduce((total, segment) => total + minutesBetween(segment.start, segment.end), 0);
-  return durationLabel(freeMinutes || 0);
+  return durationLabel(freeMinutes);
 }
 
 export function signatureFromSegments(segments: PlannerSegment[]) {
