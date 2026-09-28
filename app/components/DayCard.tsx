@@ -272,7 +272,7 @@ export default function DayCard({
                   return (
                     <button
                       ref={active ? activeRef : undefined}
-                      key={`${segment.title}-${segment.start}`}
+                      key={`${segment.title}-${segment.start}-${segment.end}-${index}`}
                       type="button"
                       className={`${styles.segment} ${kindClass[segment.kind]} ${active ? styles.segmentActive : ""} ${isLiveCurrent ? styles.segmentCurrent : ""}`}
                       style={{ width: segment.width ?? Math.max(132, Math.min(184, 116 + (segment.weight ?? 1) * 24)) }}
