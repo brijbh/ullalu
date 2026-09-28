@@ -18,6 +18,13 @@ Then open:
 http://localhost:3000
 ```
 
+To open Ullalu on another device connected to the same home network, find the
+computer's IPv4 address with `ipconfig` and open
+`http://<that-IPv4-address>:3000` on the other device. Keep the development
+server running. If the connection times out, allow Node.js through Windows
+Defender Firewall on private networks and confirm that both devices are on
+the same network (not a guest network).
+
 ## Current prototype
 
 The home page currently renders one dummy Day Card with:
