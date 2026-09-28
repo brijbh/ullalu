@@ -159,10 +159,6 @@ export default function TodayPage() {
                 const dialog = addDialogRef.current;
                 if (dialog && !dialog.open) dialog.showModal();
               }}
-              onPointerUp={() => {
-                const dialog = addDialogRef.current;
-                if (dialog && !dialog.open) dialog.showModal();
-              }}
             >
               <span aria-hidden="true">＋</span><strong>Add item</strong>
             </button>

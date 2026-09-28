@@ -8,6 +8,7 @@ import { AppHeader, BottomNav, Signature, TripArt } from "../../components/Journ
 import {
   DEFAULT_DRAFT,
   DEFAULT_TRIP_DAYS,
+  formatTripDate,
   getDraft,
   getTripDays,
   saveTripDays,
@@ -53,7 +54,7 @@ export default function TripOverviewPage() {
           <div className={`${styles.tripHead} ${parity.tripHeadIllustrated}`}>
             <div>
               <h1>{draft.name || "Japan 2026"}</h1>
-              <p>{draft.startDate} – {draft.endDate}</p>
+              <p>{formatTripDate(draft.startDate)} – {formatTripDate(draft.endDate)}</p>
               <p>Tokyo · Kyoto · Osaka</p>
             </div>
             <TripArt kind="japan" className={parity.tripHeadArt} />

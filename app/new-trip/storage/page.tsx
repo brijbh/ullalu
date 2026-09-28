@@ -15,6 +15,12 @@ const storageOptions: {
   paid?: boolean;
 }[] = [
   {
+    id: "device",
+    title: "This device",
+    description: "Save only to this device",
+    icon: "device",
+  },
+  {
     id: "drive",
     title: "Google Drive",
     description: "Save to your Google Drive",
@@ -27,12 +33,6 @@ const storageOptions: {
     icon: "cloud",
     paid: true,
   },
-  {
-    id: "device",
-    title: "This device",
-    description: "Save only to this device",
-    icon: "device",
-  },
 ];
 
 const storageNotes: Record<StorageChoice, string> = {
@@ -43,12 +43,17 @@ const storageNotes: Record<StorageChoice, string> = {
 
 export default function StorageChoicePage() {
   const router = useRouter();
-  const [selected, setSelected] = useState<StorageChoice>("drive");
+  const [selected, setSelected] = useState<StorageChoice>("device");
 
   useEffect(() => {
-    const saved = sessionStorage.getItem("ullalu:trip-storage");
-    if (saved === "drive" || saved === "cloud" || saved === "device") {
-      setSelected(saved);
+    const saved = sessionStorage.getItem("ullalu:draft-trip");
+    if (saved) {
+      try {
+        const storage = (JSON.parse(saved) as { storage?: StorageChoice }).storage;
+        if (storage === "drive" || storage === "cloud" || storage === "device") setSelected(storage);
+      } catch {
+        // An older draft should not prevent the device default from appearing.
+      }
     }
   }, []);
 

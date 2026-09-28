@@ -25,13 +25,31 @@ export type PlannerDay = {
 
 export const DEFAULT_DRAFT: TripDraft = {
   name: "Japan 2026",
-  startDate: "29 Sep 2026",
-  endDate: "12 Oct 2026",
+  startDate: "2026-09-29",
+  endDate: "2026-10-12",
   startingPlace: "Bengaluru (BLR)",
   endingPlace: "Tokyo (NRT)",
   returnToStart: true,
-  storage: "drive",
+  storage: "device",
 };
+
+const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function toDateInputValue(value: string) {
+  if (!value || /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const match = value.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
+  if (!match) return "";
+  const month = monthNames.findIndex((name) => name.toLowerCase() === match[2].toLowerCase());
+  if (month < 0) return "";
+  return `${match[3]}-${String(month + 1).padStart(2, "0")}-${match[1].padStart(2, "0")}`;
+}
+
+export function formatTripDate(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return value;
+  const month = monthNames[Number(match[2]) - 1];
+  return month ? `${Number(match[3])} ${month} ${match[1]}` : value;
+}
 
 export const DEFAULT_DAY1_SEGMENTS: PlannerSegment[] = [
   { id: "blr-car", kind: "travel", icon: "🚗", title: "To BLR Airport", duration: "45m", start: "06:00", end: "06:45", detail: "Home → BLR", weight: .75, width: 138 },
@@ -91,7 +109,12 @@ export function getDraft(): TripDraft {
   const value = sessionStorage.getItem(DRAFT_KEY);
   if (!value) return DEFAULT_DRAFT;
   try {
-    return { ...DEFAULT_DRAFT, ...(JSON.parse(value) as Partial<TripDraft>) };
+    const draft = { ...DEFAULT_DRAFT, ...(JSON.parse(value) as Partial<TripDraft>) };
+    return {
+      ...draft,
+      startDate: toDateInputValue(draft.startDate),
+      endDate: toDateInputValue(draft.endDate),
+    };
   } catch {
     return DEFAULT_DRAFT;
   }

@@ -37,7 +37,7 @@ export default function MorePage() {
 
           <div className={styles.moreList}>
             <Link className={styles.moreRow} href="/new-trip/storage">
-              <span className={styles.moreRowIcon} aria-hidden="true">☁</span>
+              <span className={styles.moreRowIcon} aria-hidden="true">{draft.storage === "device" ? "▣" : "☁"}</span>
               <span>
                 <strong>Trip storage</strong>
                 <span>{storageLabel}</span>

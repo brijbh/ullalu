@@ -60,12 +60,12 @@ export default function NewTripPage() {
               <div className={styles.inputWrap}>
                 <input
                   id="start-date"
+                  type="date"
                   className={styles.input}
                   value={draft.startDate}
                   onChange={(event) => update("startDate", event.target.value)}
                   required
                 />
-                <span className={styles.inputIcon} aria-hidden="true">▣</span>
               </div>
             </div>
 
@@ -74,12 +74,13 @@ export default function NewTripPage() {
               <div className={styles.inputWrap}>
                 <input
                   id="end-date"
+                  type="date"
                   className={styles.input}
                   value={draft.endDate}
                   onChange={(event) => update("endDate", event.target.value)}
+                  min={draft.startDate || undefined}
                   required
                 />
-                <span className={styles.inputIcon} aria-hidden="true">▣</span>
               </div>
             </div>
 

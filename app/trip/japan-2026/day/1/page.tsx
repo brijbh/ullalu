@@ -215,7 +215,6 @@ export default function DayComposerPage() {
               className={styles.dayActionButton}
               type="button"
               onClick={openAddDialog}
-              onPointerUp={openAddDialog}
             >
               <span aria-hidden="true">＋</span>
               <strong>Add item</strong>
