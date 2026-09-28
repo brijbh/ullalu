@@ -16,6 +16,9 @@ import {
   minutesBetween,
   saveDay1Segments,
   saveTripDays,
+  sortPlannerSegments,
+  validatePlannerSegment,
+  withCalculatedFreeTime,
   type PlannerDay,
   type PlannerSegment,
   type TripDraft,
@@ -26,7 +29,7 @@ const itemTypes = [
   ["transport", "Transport", "Add movement between places", "travel"],
   ["reservation", "Reservation", "Add something fixed in time", "reservation"],
   ["rest", "Hotel / Rest", "Add hotel, sleep or rest time", "rest"],
-  ["buffer", "Buffer", "Add waiting, security or overhead", "buffer"],
+  ["buffer", "Buffer", "Reserve intentional waiting, security or overhead time", "buffer"],
 ] as const;
 
 type EditorState = {
@@ -55,9 +58,10 @@ export default function DayComposerPage() {
   const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
   const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
   const [dayIndex, setDayIndex] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(2);
+  const [selectedSegmentId, setSelectedSegmentId] = useState<string | undefined>();
   const addDialogRef = useRef<HTMLDialogElement | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
+  const [editorError, setEditorError] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -68,43 +72,72 @@ export default function DayComposerPage() {
     const requestedDay = Number(new URLSearchParams(window.location.search).get("day"));
     if (Number.isFinite(requestedDay) && requestedDay >= 1 && requestedDay <= loadedDays.length) {
       setDayIndex(requestedDay - 1);
-      setSelectedIndex(undefined);
     }
   }, []);
 
   const currentDay = days[dayIndex] ?? days[0] ?? DEFAULT_TRIP_DAYS[0];
-  const segments = currentDay.segments;
+  const segments = useMemo(
+    () => sortPlannerSegments(currentDay.segments.filter((segment) => segment.kind !== "free")),
+    [currentDay.segments],
+  );
+  const displaySegments = useMemo(() => withCalculatedFreeTime(segments), [segments]);
   const freeTime = useMemo(() => freeTimeLabel(segments), [segments]);
+  const selectedIndex = selectedSegmentId
+    ? displaySegments.findIndex((segment) => segment.id === selectedSegmentId)
+    : undefined;
 
-  function changeDay(nextIndex: number) {
-    if (nextIndex < 0 || nextIndex >= days.length) return;
-    setDayIndex(nextIndex);
-    setSelectedIndex(undefined);
-    setEditor(null);
-    addDialogRef.current?.close();
-  }
-
-  function commitSegments(updated: PlannerSegment[]) {
-    const updatedDays = days.map((day, index) => (
-      index === dayIndex
-        ? { ...day, segments: updated, planned: updated.length > 0, route: day.route === "Not planned yet" ? "Plan this day" : day.route }
-        : day
-    ));
-    setDays(updatedDays);
-    saveTripDays(updatedDays);
-    if (currentDay.day === 1) saveDay1Segments(updated);
+  function flashSaved() {
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1400);
   }
 
+  function changeDay(nextIndex: number) {
+    if (nextIndex < 0 || nextIndex >= days.length) return;
+    setDayIndex(nextIndex);
+    setSelectedSegmentId(undefined);
+    setEditor(null);
+    setEditorError("");
+    addDialogRef.current?.close();
+  }
+
+  function commitSegments(updated: PlannerSegment[]) {
+    const authored = sortPlannerSegments(updated.filter((segment) => segment.kind !== "free"));
+    const updatedDays = days.map((day, index) => (
+      index === dayIndex
+        ? {
+            ...day,
+            segments: authored,
+            planned: authored.length > 0,
+            route: day.route === "Not planned yet" ? "Plan this day" : day.route,
+          }
+        : day
+    ));
+
+    setDays(updatedDays);
+    saveTripDays(updatedDays);
+    if (currentDay.day === 1) saveDay1Segments(authored);
+    flashSaved();
+  }
+
+  function updateDayNote(note: string) {
+    const updatedDays = days.map((day, index) => (
+      index === dayIndex ? { ...day, note } : day
+    ));
+    setDays(updatedDays);
+    saveTripDays(updatedDays);
+    flashSaved();
+  }
+
   function openAddDialog() {
     setEditor(null);
+    setEditorError("");
     const dialog = addDialogRef.current;
     if (dialog && !dialog.open) dialog.showModal();
   }
 
   function chooseItemType(kind: DayCardSegmentKind) {
     const item = itemTypes.find((entry) => entry[3] === kind);
+    setEditorError("");
     setEditor({
       ...blankEditor,
       kind,
@@ -113,6 +146,7 @@ export default function DayComposerPage() {
   }
 
   function openEdit(segment: PlannerSegment) {
+    setEditorError("");
     setEditor({
       id: segment.id,
       kind: segment.kind,
@@ -128,6 +162,21 @@ export default function DayComposerPage() {
   function saveEditor(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editor) return;
+
+    const validationMessage = validatePlannerSegment(
+      {
+        id: editor.id ?? "",
+        title: editor.title.trim() || "Untitled item",
+        start: editor.start,
+        end: editor.end,
+      },
+      segments,
+    );
+
+    if (validationMessage) {
+      setEditorError(validationMessage);
+      return;
+    }
 
     const minutes = minutesBetween(editor.start, editor.end);
     const next: PlannerSegment = {
@@ -147,17 +196,16 @@ export default function DayComposerPage() {
       ? segments.map((segment) => segment.id === editor.id ? next : segment)
       : [...segments, next];
 
-    updated.sort((a, b) => a.start.localeCompare(b.start));
     commitSegments(updated);
     setEditor(null);
+    setEditorError("");
     addDialogRef.current?.close();
-    setSelectedIndex(Math.max(0, updated.findIndex((segment) => segment.id === next.id)));
+    setSelectedSegmentId(next.id);
   }
 
   function removeSegment(id: string) {
-    const updated = segments.filter((segment) => segment.id !== id);
-    commitSegments(updated);
-    setSelectedIndex(undefined);
+    commitSegments(segments.filter((segment) => segment.id !== id));
+    if (selectedSegmentId === id) setSelectedSegmentId(undefined);
   }
 
   const dayNavigation: DayNavigationItem[] = [
@@ -171,7 +219,7 @@ export default function DayComposerPage() {
       label: `DAY ${currentDay.day}`,
       date: shortDate(currentDay.date),
       active: true,
-      onClick: () => setSelectedIndex(undefined),
+      onClick: () => setSelectedSegmentId(undefined),
     },
     {
       label: "NEXT",
@@ -202,11 +250,11 @@ export default function DayComposerPage() {
               route={currentDay.route}
               subtitle={currentDay.subtitle || "Start shaping this day."}
               freeTime={freeTime}
-              segments={segments}
-              selectedIndex={selectedIndex}
-              onSelectSegment={setSelectedIndex}
+              segments={displaySegments}
+              selectedIndex={selectedIndex !== undefined && selectedIndex >= 0 ? selectedIndex : undefined}
+              onSelectSegment={(index) => setSelectedSegmentId(displaySegments[index]?.id)}
               dayNavigation={dayNavigation}
-              note={currentDay.day === 1 ? "Immigration may take time." : undefined}
+              note={currentDay.note}
             />
           </div>
 
@@ -223,20 +271,21 @@ export default function DayComposerPage() {
 
           <div className={styles.composerSectionHead}>
             <p className={styles.sectionLabel}>ACTIVITIES FOR THE DAY</p>
+            <span className={styles.timeOrderHint}>Ordered by time</span>
           </div>
 
           <div className={styles.composerItems}>
-            {segments.length ? segments.map((segment, index) => (
+            {segments.length ? segments.map((segment) => (
               <article
-                className={`${styles.composerItem} ${selectedIndex === index ? styles.composerItemSelected : ""}`}
+                className={`${styles.composerItem} ${selectedSegmentId === segment.id ? styles.composerItemSelected : ""}`}
                 key={segment.id}
-                onClick={() => setSelectedIndex(index)}
+                onClick={() => setSelectedSegmentId(segment.id)}
               >
                 <span className={styles.composerItemIcon} aria-hidden="true">{segment.icon}</span>
                 <span className={styles.composerItemCopy}>
                   <strong>{segment.title}</strong>
                   <span>{segment.start}–{segment.end} · {segment.duration}</span>
-                  <small>{segment.detail}</small>
+                  <small>{segment.kind === "buffer" ? `Intentional buffer · ${segment.detail}` : segment.detail}</small>
                 </span>
                 <span className={styles.composerItemActions}>
                   <button type="button" onClick={(event) => { event.stopPropagation(); openEdit(segment); }}>Edit</button>
@@ -249,9 +298,24 @@ export default function DayComposerPage() {
           </div>
 
           <div className={styles.freeTime}>
-            <span>Calculated free time today</span>
+            <span>
+              <strong>Free time</strong>
+              <small>Automatically calculated from open gaps. Buffer is intentional time you add yourself.</small>
+            </span>
             <strong>{freeTime}</strong>
           </div>
+
+          <section className={styles.dayNotes} aria-label="Day notes">
+            <label htmlFor="day-note">DAY NOTE</label>
+            <textarea
+              id="day-note"
+              value={currentDay.note ?? ""}
+              onChange={(event) => updateDayNote(event.target.value)}
+              placeholder="Add context for the whole day…"
+              rows={3}
+            />
+            <small>For the whole day. Notes for individual itinerary segments can come later.</small>
+          </section>
 
           <Link className={styles.primaryButton} href="/trip/japan-2026">
             Done with Day {currentDay.day} <span aria-hidden="true">→</span>
@@ -263,8 +327,14 @@ export default function DayComposerPage() {
       <dialog
         ref={addDialogRef}
         className={styles.addItemDialog}
-        onCancel={() => setEditor(null)}
-        onClose={() => setEditor(null)}
+        onCancel={() => {
+          setEditor(null);
+          setEditorError("");
+        }}
+        onClose={() => {
+          setEditor(null);
+          setEditorError("");
+        }}
       >
         <div className={styles.sheetHandle} aria-hidden="true" />
         <div className={styles.composerSheetHead}>
@@ -276,6 +346,7 @@ export default function DayComposerPage() {
             type="button"
             onClick={() => {
               setEditor(null);
+              setEditorError("");
               addDialogRef.current?.close();
             }}
             aria-label="Close"
@@ -292,7 +363,10 @@ export default function DayComposerPage() {
                 id="item-kind"
                 className={styles.input}
                 value={editor.kind}
-                onChange={(event) => setEditor({ ...editor, kind: event.target.value as DayCardSegmentKind })}
+                onChange={(event) => {
+                  setEditorError("");
+                  setEditor({ ...editor, kind: event.target.value as DayCardSegmentKind });
+                }}
               >
                 <option value="activity">Place / Activity</option>
                 <option value="travel">Transport</option>
@@ -308,7 +382,10 @@ export default function DayComposerPage() {
                 id="item-title"
                 className={styles.input}
                 value={editor.title}
-                onChange={(event) => setEditor({ ...editor, title: event.target.value })}
+                onChange={(event) => {
+                  setEditorError("");
+                  setEditor({ ...editor, title: event.target.value });
+                }}
                 placeholder="e.g. TeamLab Borderless"
                 required
               />
@@ -317,13 +394,39 @@ export default function DayComposerPage() {
             <div className={styles.composerTimeGrid}>
               <div className={styles.field}>
                 <label htmlFor="item-start">Start</label>
-                <input id="item-start" type="time" className={styles.input} value={editor.start} onChange={(event) => setEditor({ ...editor, start: event.target.value })} required />
+                <input
+                  id="item-start"
+                  type="time"
+                  className={styles.input}
+                  value={editor.start}
+                  onChange={(event) => {
+                    setEditorError("");
+                    setEditor({ ...editor, start: event.target.value });
+                  }}
+                  required
+                />
               </div>
               <div className={styles.field}>
                 <label htmlFor="item-end">End</label>
-                <input id="item-end" type="time" className={styles.input} value={editor.end} onChange={(event) => setEditor({ ...editor, end: event.target.value })} required />
+                <input
+                  id="item-end"
+                  type="time"
+                  className={styles.input}
+                  value={editor.end}
+                  onChange={(event) => {
+                    setEditorError("");
+                    setEditor({ ...editor, end: event.target.value });
+                  }}
+                  required
+                />
               </div>
             </div>
+
+            {editorError ? (
+              <p className={styles.editorError} role="alert">{editorError}</p>
+            ) : (
+              <p className={styles.timeHelp}>Items are placed chronologically. End time must be after start time and cannot overlap another item.</p>
+            )}
 
             <div className={styles.field}>
               <label htmlFor="item-detail">Details</label>
@@ -335,6 +438,12 @@ export default function DayComposerPage() {
                 placeholder="Location, booking, transport, notes…"
               />
             </div>
+
+            {editor.kind === "buffer" ? (
+              <p className={styles.bufferHelp}>
+                Buffer is deliberate protected time. Free Time is calculated automatically from the gaps left in your schedule.
+              </p>
+            ) : null}
 
             <button className={styles.primaryButton} type="submit">
               {editor.id ? "Save changes" : "Add to day"}
