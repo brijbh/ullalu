@@ -25,12 +25,12 @@ export type PlannerDay = {
 };
 
 export const DEFAULT_DRAFT: TripDraft = {
-  name: "Japan 2026",
-  startDate: "2026-09-29",
-  endDate: "2026-10-12",
-  startingPlace: "Bengaluru (BLR)",
-  endingPlace: "Tokyo (NRT)",
-  returnToStart: true,
+  name: "",
+  startDate: "",
+  endDate: "",
+  startingPlace: "",
+  endingPlace: "",
+  returnToStart: false,
   storage: "device",
 };
 
@@ -52,117 +52,18 @@ export function formatTripDate(value: string) {
   return month ? `${Number(match[3])} ${month} ${match[1]}` : value;
 }
 
-export const DEFAULT_DAY1_SEGMENTS: PlannerSegment[] = [
-  { id: "blr-car", kind: "travel", icon: "🚗", title: "To BLR Airport", duration: "45m", start: "06:00", end: "06:45", detail: "Home → BLR", weight: .75, width: 138 },
-  { id: "checkin", kind: "buffer", icon: "🧳", title: "Check-in", duration: "1h 55m", start: "07:30", end: "09:25", detail: "Security · Terminal 2", weight: 1.92, width: 142 },
-  { id: "sq35", kind: "travel", icon: "✈", title: "SQ 35", duration: "6h 10m", start: "09:25", end: "15:35", detail: "BLR → SIN", weight: 6.17, width: 184 },
-  { id: "sin-layover", kind: "buffer", icon: "🛬", title: "Layover", duration: "2h 15m", start: "15:35", end: "17:50", detail: "Changi Airport", weight: 2.25, width: 142 },
-  { id: "sq12", kind: "travel", icon: "✈", title: "SQ 12", duration: "6h 20m", start: "17:50", end: "14:10 +1", detail: "SIN → NRT", weight: 6.33, width: 184 },
-  { id: "nrt-train", kind: "travel", icon: "🚆", title: "To hotel", duration: "1h 10m", start: "14:10", end: "15:20", detail: "NRT → Shinjuku", weight: 1.17, width: 146 },
-  { id: "hotel-checkin", kind: "activity", icon: "🏨", title: "Check-in", duration: "15m", start: "15:20", end: "15:35", detail: "Hotel Gracery", weight: .25, width: 132 },
-  { id: "free-evening", kind: "free", icon: "◷", title: "Free time", duration: "~1h", start: "15:35", end: "16:35", detail: "Explore nearby", weight: 1, width: 132 },
-];
-
-export const DEFAULT_TRIP_DAYS: PlannerDay[] = [
-  { day: 1, date: "Tue, 29 Sep", route: "BLR → Tokyo", subtitle: "Flight to Tokyo, arrive and rest", planned: true, note: "Immigration may take time.", segments: DEFAULT_DAY1_SEGMENTS },
-  { day: 2, date: "Wed, 30 Sep", route: "Tokyo", subtitle: "Neighbourhoods and first full day", planned: true, segments: [
-    { id: "d2-1", kind: "travel", icon: "🚆", title: "To Shibuya", duration: "25m", start: "09:00", end: "09:25", detail: "Metro", weight: .5 },
-    { id: "d2-2", kind: "activity", icon: "📍", title: "Shibuya", duration: "2h", start: "09:30", end: "11:30", detail: "Crossing · shops", weight: 1.5 },
-    { id: "d2-3", kind: "free", icon: "◷", title: "Free time", duration: "1h 30m", start: "11:30", end: "13:00", detail: "Lunch", weight: 1.1 },
-    { id: "d2-4", kind: "reservation", icon: "🍽", title: "Dinner", duration: "1h 30m", start: "18:00", end: "19:30", detail: "Reservation", weight: .7 },
-    { id: "d2-5", kind: "rest", icon: "🌙", title: "Rest", duration: "2h", start: "20:00", end: "22:00", detail: "Hotel", weight: 1.4 },
-  ] },
-  { day: 3, date: "Thu, 1 Oct", route: "Tokyo", subtitle: "Museums and open time", planned: true, segments: [
-    { id: "d3-1", kind: "activity", icon: "🏛", title: "Museum", duration: "2h", start: "10:00", end: "12:00", detail: "Ueno", weight: 1.2 },
-    { id: "d3-2", kind: "free", icon: "◷", title: "Free time", duration: "2h", start: "12:00", end: "14:00", detail: "Lunch · explore", weight: 1 },
-    { id: "d3-3", kind: "activity", icon: "🌳", title: "Park", duration: "1h 30m", start: "14:30", end: "16:00", detail: "Ueno Park", weight: 1.1 },
-    { id: "d3-4", kind: "reservation", icon: "🍽", title: "Dinner", duration: "1h", start: "18:30", end: "19:30", detail: "Reserved", weight: .8 },
-    { id: "d3-5", kind: "rest", icon: "🌙", title: "Rest", duration: "2h", start: "20:00", end: "22:00", detail: "Hotel", weight: 1.3 },
-  ] },
-  { day: 4, date: "Fri, 2 Oct", route: "Tokyo → Kyoto", subtitle: "Shinkansen and Kyoto arrival", planned: true, segments: [
-    { id: "d4-1", kind: "travel", icon: "🚄", title: "Shinkansen", duration: "2h 15m", start: "09:00", end: "11:15", detail: "Tokyo → Kyoto", weight: 1.2 },
-    { id: "d4-2", kind: "activity", icon: "⛩", title: "Fushimi Inari", duration: "2h", start: "14:00", end: "16:00", detail: "Kyoto", weight: 1.2 },
-    { id: "d4-3", kind: "free", icon: "◷", title: "Free time", duration: "1h 30m", start: "16:00", end: "17:30", detail: "Explore", weight: 1 },
-    { id: "d4-4", kind: "rest", icon: "🌙", title: "Rest", duration: "2h", start: "20:00", end: "22:00", detail: "Hotel", weight: 1.5 },
-  ] },
-  { day: 5, date: "Sat, 3 Oct", route: "Kyoto", subtitle: "Temples and evening reservation", planned: true, segments: [
-    { id: "d5-1", kind: "free", icon: "◷", title: "Slow morning", duration: "1h", start: "08:00", end: "09:00", detail: "Breakfast", weight: 1 },
-    { id: "d5-2", kind: "activity", icon: "⛩", title: "Kiyomizu-dera", duration: "2h", start: "10:00", end: "12:00", detail: "Temple", weight: 1.4 },
-    { id: "d5-3", kind: "reservation", icon: "🍽", title: "Dinner", duration: "1h 30m", start: "18:30", end: "20:00", detail: "Gion", weight: .8 },
-    { id: "d5-4", kind: "rest", icon: "🌙", title: "Rest", duration: "2h", start: "20:30", end: "22:30", detail: "Hotel", weight: 1.4 },
-  ] },
-  { day: 6, date: "Sun, 4 Oct", route: "Kyoto", subtitle: "Arashiyama and flexible afternoon", planned: true, segments: [
-    { id: "d6-1", kind: "activity", icon: "🎋", title: "Arashiyama", duration: "2h", start: "09:00", end: "11:00", detail: "Bamboo grove", weight: 1.2 },
-    { id: "d6-2", kind: "free", icon: "◷", title: "Free time", duration: "2h", start: "11:00", end: "13:00", detail: "Lunch", weight: 1 },
-    { id: "d6-3", kind: "activity", icon: "📍", title: "Kyoto walk", duration: "2h", start: "14:00", end: "16:00", detail: "Neighbourhoods", weight: 1.1 },
-    { id: "d6-4", kind: "reservation", icon: "🍽", title: "Dinner", duration: "1h", start: "18:30", end: "19:30", detail: "Reserved", weight: .7 },
-    { id: "d6-5", kind: "rest", icon: "🌙", title: "Rest", duration: "2h", start: "20:00", end: "22:00", detail: "Hotel", weight: 1.5 },
-  ] },
-  { day: 7, date: "Mon, 5 Oct", route: "Not planned yet", subtitle: "", planned: false, segments: [] },
-];
-
 const DRAFT_KEY = "ullalu:draft-trip";
-const DAYS_KEY = "ullalu:trip-days";
-const DAY1_KEY = "ullalu:japan-2026:day1";
 
 export function getDraft(): TripDraft {
   if (typeof window === "undefined") return DEFAULT_DRAFT;
-  const value = sessionStorage.getItem(DRAFT_KEY);
-  if (!value) return DEFAULT_DRAFT;
   try {
-    const draft = { ...DEFAULT_DRAFT, ...(JSON.parse(value) as Partial<TripDraft>) };
-    return {
-      ...draft,
-      startDate: toDateInputValue(draft.startDate),
-      endDate: toDateInputValue(draft.endDate),
-    };
-  } catch {
-    return DEFAULT_DRAFT;
-  }
+    const draft = { ...DEFAULT_DRAFT, ...JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "{}") } as TripDraft;
+    return { ...draft, startDate: toDateInputValue(draft.startDate), endDate: toDateInputValue(draft.endDate) };
+  } catch { return DEFAULT_DRAFT; }
 }
 
 export function saveDraft(draft: TripDraft) {
-  if (typeof window === "undefined") return;
-  sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-}
-
-export function getDay1Segments(): PlannerSegment[] {
-  if (typeof window === "undefined") return DEFAULT_DAY1_SEGMENTS;
-  const value = sessionStorage.getItem(DAY1_KEY);
-  if (!value) return DEFAULT_DAY1_SEGMENTS;
-  try {
-    const parsed = JSON.parse(value) as PlannerSegment[];
-    return Array.isArray(parsed) ? parsed : DEFAULT_DAY1_SEGMENTS;
-  } catch {
-    return DEFAULT_DAY1_SEGMENTS;
-  }
-}
-
-export function saveDay1Segments(segments: PlannerSegment[]) {
-  if (typeof window === "undefined") return;
-  sessionStorage.setItem(DAY1_KEY, JSON.stringify(segments));
-  const days = getTripDays().map((day) => day.day === 1 ? { ...day, segments, planned: segments.length > 0 } : day);
-  sessionStorage.setItem(DAYS_KEY, JSON.stringify(days));
-}
-
-export function getTripDays(): PlannerDay[] {
-  if (typeof window === "undefined") return DEFAULT_TRIP_DAYS;
-  const value = sessionStorage.getItem(DAYS_KEY);
-  if (!value) {
-    const day1 = getDay1Segments();
-    return DEFAULT_TRIP_DAYS.map((day) => day.day === 1 ? { ...day, segments: day1 } : day);
-  }
-  try {
-    const parsed = JSON.parse(value) as PlannerDay[];
-    return Array.isArray(parsed) ? parsed : DEFAULT_TRIP_DAYS;
-  } catch {
-    return DEFAULT_TRIP_DAYS;
-  }
-}
-
-export function saveTripDays(days: PlannerDay[]) {
-  if (typeof window === "undefined") return;
-  sessionStorage.setItem(DAYS_KEY, JSON.stringify(days));
+  if (typeof window !== "undefined") sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
 }
 
 export function iconForKind(kind: DayCardSegmentKind) {
@@ -341,4 +242,82 @@ export function freeTimeLabel(segments: PlannerSegment[]) {
 
 export function signatureFromSegments(segments: PlannerSegment[]) {
   return segments.map((segment) => ({ kind: segment.kind, flex: Math.max(.2, segment.weight ?? 1) }));
+}
+
+export type SavedTrip = { id: string; draft: TripDraft; days: PlannerDay[] };
+const TRIPS_KEY = "ullalu:trips";
+const ACTIVE_TRIP_KEY = "ullalu:active-trip";
+const DAY_MS = 86_400_000;
+
+function dateMillis(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return NaN;
+  const millis = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return new Date(millis).toISOString().slice(0, 10) === value ? millis : NaN;
+}
+
+export function tripDayCount(start: string, end: string) {
+  const first = dateMillis(start);
+  const last = dateMillis(end);
+  return Number.isFinite(first) && Number.isFinite(last) && last >= first
+    ? Math.floor((last - first) / DAY_MS) + 1 : 0;
+}
+
+export function dateForDay(start: string, day: number) {
+  return new Date(dateMillis(start) + (day - 1) * DAY_MS).toISOString().slice(0, 10);
+}
+
+export function displayDayDate(date: string) {
+  return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })
+    .format(new Date(dateMillis(date)));
+}
+
+export function createTripDays(draft: TripDraft): PlannerDay[] {
+  const count = tripDayCount(draft.startDate, draft.endDate);
+  if (!count) throw new Error("Choose valid start and end dates.");
+  return Array.from({ length: count }, (_, index) => ({
+    day: index + 1,
+    date: displayDayDate(dateForDay(draft.startDate, index + 1)),
+    route: "Not planned yet",
+    subtitle: "",
+    planned: false,
+    segments: [],
+  }));
+}
+
+export function getTrips(): SavedTrip[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const trips = JSON.parse(localStorage.getItem(TRIPS_KEY) || "[]") as SavedTrip[];
+    return Array.isArray(trips) ? trips.filter((trip) => trip.id && trip.draft && Array.isArray(trip.days)) : [];
+  } catch { return []; }
+}
+
+export function getTrip(id: string) {
+  return getTrips().find((trip) => trip.id === id);
+}
+
+export function getActiveTrip() {
+  if (typeof window === "undefined") return undefined;
+  return getTrip(localStorage.getItem(ACTIVE_TRIP_KEY) || "") ?? getTrips().at(-1);
+}
+
+export function createTrip(draft: TripDraft): SavedTrip {
+  const days = createTripDays(draft);
+  const slug = draft.name.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "trip";
+  const id = `${slug}-${crypto.randomUUID().slice(0, 8)}`;
+  const trip = { id, draft, days };
+  localStorage.setItem(TRIPS_KEY, JSON.stringify([...getTrips(), trip]));
+  localStorage.setItem(ACTIVE_TRIP_KEY, id);
+  return trip;
+}
+
+export function saveTrip(trip: SavedTrip) {
+  localStorage.setItem(TRIPS_KEY, JSON.stringify(getTrips().map((item) => item.id === trip.id ? trip : item)));
+  localStorage.setItem(ACTIVE_TRIP_KEY, trip.id);
+}
+
+export function tripDayPath(id: string, day: number) {
+  return `/trip/${encodeURIComponent(id)}/day/${day}`;
 }

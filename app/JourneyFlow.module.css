@@ -1950,3 +1950,10 @@
   background: rgba(13, 28, 46, .42);
   backdrop-filter: blur(3px);
 }
+
+.addDayButton[href] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}

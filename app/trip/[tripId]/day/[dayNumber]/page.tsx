@@ -2,20 +2,20 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import styles from "../../../../JourneyFlow.module.css";
 import DayCard, { type DayCardSegmentKind, type DayNavigationItem } from "../../../../components/DayCard";
 import { AppHeader, BottomNav, SuggestionIcon } from "../../../../components/JourneyUI";
 import {
-  DEFAULT_DRAFT,
-  DEFAULT_TRIP_DAYS,
+  getTrip,
+  saveTrip,
+  tripDayPath,
+  type SavedTrip,
   durationLabel,
   freeTimeLabel,
-  getTripDays,
   iconForKind,
   minutesBetween,
   normalizeEndTime,
-  saveDay1Segments,
-  saveTripDays,
   sortPlannerSegments,
   validatePlannerSegment,
   withCalculatedFreeTime,
@@ -54,25 +54,26 @@ function shortDate(date: string) {
 }
 
 export default function DayComposerPage() {
-  const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
-  const [dayIndex, setDayIndex] = useState(0);
+  const params = useParams<{ tripId: string; dayNumber: string }>();
+  const router = useRouter();
+  const [trip, setTrip] = useState<SavedTrip | null>(null);
+  const days = trip?.days ?? [];
+  const dayIndex = Number(params.dayNumber) - 1;
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | undefined>();
   const addDialogRef = useRef<HTMLDialogElement | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [editorError, setEditorError] = useState("");
   const [saved, setSaved] = useState(false);
 
+  useEffect(() => { setTrip(getTrip(params.tripId) ?? null); }, [params.tripId]);
   useEffect(() => {
-    const loadedDays = getTripDays();
-    setDays(loadedDays);
+    setSelectedSegmentId(undefined);
+    setEditor(null);
+    setEditorError("");
+    addDialogRef.current?.close();
+  }, [params.dayNumber]);
 
-    const requestedDay = Number(new URLSearchParams(window.location.search).get("day"));
-    if (Number.isFinite(requestedDay) && requestedDay >= 1 && requestedDay <= loadedDays.length) {
-      setDayIndex(requestedDay - 1);
-    }
-  }, []);
-
-  const currentDay = days[dayIndex] ?? days[0] ?? DEFAULT_TRIP_DAYS[0];
+  const currentDay = days[dayIndex] ?? { day: dayIndex + 1, date: "", route: "", subtitle: "", planned: false, segments: [] };
   const segments = useMemo(
     () => sortPlannerSegments(currentDay.segments.filter((segment) => segment.kind !== "free")),
     [currentDay.segments],
@@ -89,12 +90,8 @@ export default function DayComposerPage() {
   }
 
   function changeDay(nextIndex: number) {
-    if (nextIndex < 0 || nextIndex >= days.length) return;
-    setDayIndex(nextIndex);
-    setSelectedSegmentId(undefined);
-    setEditor(null);
-    setEditorError("");
-    addDialogRef.current?.close();
+    if (nextIndex < 0 || nextIndex >= days.length || !trip) return;
+    router.push(tripDayPath(trip.id, nextIndex + 1));
   }
 
   function commitSegments(updated: PlannerSegment[]) {
@@ -105,14 +102,14 @@ export default function DayComposerPage() {
             ...day,
             segments: authored,
             planned: authored.length > 0,
-            route: day.route === "Not planned yet" ? "Plan this day" : day.route,
+            route: authored[0]?.title ?? "Not planned yet",
           }
         : day
     ));
 
-    setDays(updatedDays);
-    saveTripDays(updatedDays);
-    if (currentDay.day === 1) saveDay1Segments(authored);
+    const updatedTrip = { ...trip!, days: updatedDays };
+    setTrip(updatedTrip);
+    saveTrip(updatedTrip);
     flashSaved();
   }
 
@@ -120,8 +117,9 @@ export default function DayComposerPage() {
     const updatedDays = days.map((day, index) => (
       index === dayIndex ? { ...day, note } : day
     ));
-    setDays(updatedDays);
-    saveTripDays(updatedDays);
+    const updatedTrip = { ...trip!, days: updatedDays };
+    setTrip(updatedTrip);
+    saveTrip(updatedTrip);
     flashSaved();
   }
 
@@ -226,15 +224,17 @@ export default function DayComposerPage() {
     },
   ];
 
+  if (!trip || !days[dayIndex]) return <main className={styles.screen}><div className={styles.emptyState}>Trip or day not found. <Link href="/trips">My Trips</Link></div></main>;
+
   return (
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader backHref="/trip/japan-2026" travelDestination={currentDay.day >= 4 ? "Kyoto" : "Tokyo"} />
+          <AppHeader backHref={`/trip/${trip?.id}`} note={trip?.draft.endingPlace} />
 
           <div className={styles.tripHead}>
             <div>
-              <h1>{DEFAULT_DRAFT.name}</h1>
+              <h1>{trip?.draft.name}</h1>
               <p>Build Day {currentDay.day} · {currentDay.date}</p>
             </div>
             {saved ? <span className={styles.savedPill}>Saved</span> : null}
@@ -314,7 +314,7 @@ export default function DayComposerPage() {
             <small>For the whole day. Notes for individual itinerary segments can come later.</small>
           </section>
 
-          <Link className={styles.primaryButton} href="/trip/japan-2026">
+          <Link className={styles.primaryButton} href={`/trip/${trip?.id}`}>
             Done with Day {currentDay.day} <span aria-hidden="true">→</span>
           </Link>
         </div>

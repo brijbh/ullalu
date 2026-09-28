@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../JourneyFlow.module.css";
 import { AppHeader, BottomNav, MountainFooter, StorageIcon } from "../../components/JourneyUI";
+import { createTrip, getDraft } from "../../lib/tripSession";
 
 type StorageChoice = "drive" | "cloud" | "device";
 
@@ -58,22 +59,9 @@ export default function StorageChoicePage() {
   }, []);
 
   function continueToComposer() {
-    sessionStorage.setItem("ullalu:trip-storage", selected);
-
-    const draftJson = sessionStorage.getItem("ullalu:draft-trip");
-    if (draftJson) {
-      try {
-        const draft = JSON.parse(draftJson) as Record<string, unknown>;
-        sessionStorage.setItem(
-          "ullalu:draft-trip",
-          JSON.stringify({ ...draft, storage: selected }),
-        );
-      } catch {
-        // Keep storage selection even if an older draft cannot be parsed.
-      }
-    }
-
-    router.push("/trip/japan-2026/day/1");
+    const trip = createTrip({ ...getDraft(), storage: selected });
+    sessionStorage.removeItem("ullalu:draft-trip");
+    router.push(`/trip/${trip.id}/day/1`);
   }
 
   return (

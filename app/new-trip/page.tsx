@@ -28,6 +28,7 @@ export default function NewTripPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (draft.endDate < draft.startDate) return;
     saveDraft(draft);
     router.push("/new-trip/storage");
   }

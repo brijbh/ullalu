@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
+import { formatTripDate, getTrips, type SavedTrip } from "../lib/tripSession";
 import { ActionGlyph, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
 
 type TripTab = "planning" | "upcoming" | "completed";
 
 const planning = [
-  ["Japan 2026", "29 Sep – 12 Oct 2026", "8 of 12 days planned", "japan", "/trip/japan-2026"],
   ["Europe Summer", "Jun 2027", "3 of 14 days planned", "europe", "#"],
   ["Sri Lanka", "Dec 2026", "0 of 10 days planned", "srilanka", "#"],
 ] as const;
@@ -25,12 +25,15 @@ const completed = [
 
 export default function TripsPage() {
   const [tab, setTab] = useState<TripTab>("planning");
+  const [savedTrips, setSavedTrips] = useState<SavedTrip[]>([]);
+  useEffect(() => { setSavedTrips(getTrips()); }, []);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
 
   const q = query.trim().toLowerCase();
 
   const planningRows = useMemo(() => planning.filter(([name]) => !q || name.toLowerCase().includes(q)), [q]);
+  const savedRows = useMemo(() => savedTrips.filter((trip) => !q || trip.draft.name.toLowerCase().includes(q)), [savedTrips, q]);
   const upcomingRows = useMemo(() => upcoming.filter(([name]) => !q || name.toLowerCase().includes(q)), [q]);
   const completedRows = useMemo(() => completed.filter(([name]) => !q || name.toLowerCase().includes(q)), [q]);
 
@@ -61,7 +64,7 @@ export default function TripsPage() {
           ) : null}
 
           <div className={`${styles.tabs} ${parity.libraryTabs}`}>
-            <button className={`${styles.tabButton} ${tab === "planning" ? styles.tabButtonActive : ""}`} type="button" onClick={() => setTab("planning")}>Planning {planning.length}</button>
+            <button className={`${styles.tabButton} ${tab === "planning" ? styles.tabButtonActive : ""}`} type="button" onClick={() => setTab("planning")}>Planning {planning.length + savedTrips.length}</button>
             <button className={`${styles.tabButton} ${tab === "upcoming" ? styles.tabButtonActive : ""}`} type="button" onClick={() => setTab("upcoming")}>Upcoming {upcoming.length}</button>
             <button className={`${styles.tabButton} ${tab === "completed" ? styles.tabButtonActive : ""}`} type="button" onClick={() => setTab("completed")}>Completed {completed.length}</button>
           </div>
@@ -69,6 +72,15 @@ export default function TripsPage() {
           {tab === "planning" ? (
             <section className={styles.tripListSection}>
               <h2>Planning</h2>
+              {savedRows.map((trip) => (
+                <Link href={`/trip/${trip.id}`} className={`${styles.libraryCard} ${parity.completedLibraryCard}`} key={trip.id}>
+                  <div className={parity.libraryCopy}>
+                    <strong>{trip.draft.name}</strong>
+                    <span>{formatTripDate(trip.draft.startDate)} – {formatTripDate(trip.draft.endDate)}</span>
+                    <small>{trip.days.filter((day) => day.planned).length} of {trip.days.length} days planned</small>
+                  </div>
+                </Link>
+              ))}
               {planningRows.map(([name, date, progress, art, href]) => (
                 href !== "#" ? (
                   <Link href={href} className={`${styles.libraryCard} ${parity.completedLibraryCard}`} key={name}>
@@ -92,7 +104,7 @@ export default function TripsPage() {
                   </article>
                 )
               ))}
-              {!planningRows.length ? <div className={styles.emptyState}>No planning trips match “{query}”.</div> : null}
+              {!planningRows.length && !savedRows.length ? <div className={styles.emptyState}>No planning trips match “{query}”.</div> : null}
             </section>
           ) : null}
 

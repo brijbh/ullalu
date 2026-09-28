@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { formatTripDate, getActiveTrip, type SavedTrip } from "./lib/tripSession";
 import Link from "next/link";
 import styles from "./Home.module.css";
 
@@ -203,11 +207,13 @@ function SmallJourneyCard({ journey, phaseLabel }: { journey: Journey; phaseLabe
 }
 
 export default function Home() {
+  const [activeTrip, setActiveTrip] = useState<SavedTrip | null>(null);
+  useEffect(() => { setActiveTrip(getActiveTrip() ?? null); }, []);
   const japan: Journey = {
-    name: "Japan 2026",
-    dates: "29 Sep – 12 Oct",
-    meta: "8 of 12 days planned",
-    countdown: "18 days to go",
+    name: activeTrip?.draft.name ?? "Plan your next journey",
+    dates: activeTrip ? `${formatTripDate(activeTrip.draft.startDate)} – ${formatTripDate(activeTrip.draft.endDate)}` : "Choose dates and places",
+    meta: activeTrip ? `${activeTrip.days.filter((day) => day.planned).length} of ${activeTrip.days.length} days planned` : "Start with your itinerary",
+    countdown: activeTrip ? "Continue planning" : "New trip",
     illustration: "japan",
     tone: "featured",
   };
@@ -259,14 +265,14 @@ export default function Home() {
                 <div>
                   <strong>{japan.name}</strong>
                   <span>{japan.dates}</span>
-                  <small>Tokyo · Kyoto · Osaka</small>
+                  <small>{activeTrip ? `${activeTrip.draft.startingPlace} → ${activeTrip.draft.endingPlace}` : "Your journey begins here"}</small>
                 </div>
                 <JourneyIllustration kind="japan" />
               </div>
               <TimeSignature tone="featured" />
               <div className={styles.featuredFooter}>
                 <span>{japan.meta}</span>
-                <Link href="/trip/japan-2026">Continue planning <Icon name="arrow" /></Link>
+                <Link href={activeTrip ? `/trip/${activeTrip.id}` : "/new-trip"}>{activeTrip ? "Continue planning" : "Create trip"} <Icon name="arrow" /></Link>
               </div>
             </article>
           </div>

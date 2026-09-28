@@ -40,6 +40,7 @@ type DayCardProps = {
   liveNow?: boolean;
   nowTime?: string;
   nowPositionPercent?: number;
+  timeZone?: string;
   segmentProgressPercent?: number;
   note?: string;
   alert?: string;
@@ -73,7 +74,7 @@ function parseTime(value?: string) {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-function findCurrentSegment(segments: DayCardSegment[], minutes: number, fallback: number) {
+export function findCurrentSegment(segments: DayCardSegment[], minutes: number) {
   const index = segments.findIndex((segment) => {
     const start = parseTime(segment.start);
     let end = parseTime(segment.end);
@@ -83,7 +84,7 @@ function findCurrentSegment(segments: DayCardSegment[], minutes: number, fallbac
     if (current < start && end > 24 * 60) current += 24 * 60;
     return current >= start && current < end;
   });
-  return index >= 0 ? index : Math.max(0, Math.min(fallback, segments.length - 1));
+  return index >= 0 ? index : -1;
 }
 
 function progressForSegment(segment: DayCardSegment | undefined, minutes: number, fallback: number) {
@@ -119,54 +120,62 @@ export default function DayCard({
   liveNow = mode === "live",
   nowTime,
   nowPositionPercent,
+  timeZone,
   segmentProgressPercent = 45,
   note,
   alert,
 }: DayCardProps) {
-  const initialMinutes = parseTime(nowTime) ?? 12 * 60;
-  const [liveMinutes, setLiveMinutes] = useState(initialMinutes);
+  const [liveMinutes, setLiveMinutes] = useState<number | null>(null);
+  const stripRef = useRef<HTMLElement | null>(null);
+  const manualScrollRef = useRef(false);
+  const clockMinutes = () => {
+    const now = new Date();
+    if (!timeZone) return now.getHours() * 60 + now.getMinutes();
+    try {
+      const parts = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone }).formatToParts(now);
+      return Number(parts.find((part) => part.type === "hour")?.value) * 60 + Number(parts.find((part) => part.type === "minute")?.value);
+    } catch { return now.getHours() * 60 + now.getMinutes(); }
+  };
   const computedCurrentIndex = liveNow
-    ? findCurrentSegment(segments, liveMinutes, currentIndex)
+    ? findCurrentSegment(segments, liveMinutes ?? 0)
     : currentIndex;
-  const initialActiveIndex = selectedIndex ?? (liveNow ? computedCurrentIndex : 0);
+  const initialActiveIndex = selectedIndex ?? (liveNow ? Math.max(0, computedCurrentIndex) : 0);
   const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
   const [expanded, setExpanded] = useState(false);
   const activeRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    if (!liveNow || !nowTime) {
-      setLiveMinutes(parseTime(nowTime) ?? 12 * 60);
-      return;
-    }
-
-    const baseMinutes = parseTime(nowTime) ?? 12 * 60;
-    const startedAt = Date.now();
-    const tick = () => {
-      const elapsedMinutes = Math.floor((Date.now() - startedAt) / 60000);
-      setLiveMinutes(baseMinutes + elapsedMinutes);
-    };
-
+    if (!liveNow) { setLiveMinutes(null); return; }
+    const tick = () => setLiveMinutes(nowTime ? parseTime(nowTime) : clockMinutes());
     tick();
     const timer = window.setInterval(tick, 30000);
     return () => window.clearInterval(timer);
-  }, [liveNow, nowTime, dayLabel]);
+  }, [liveNow, nowTime, timeZone]);
 
   useEffect(() => {
-    if (selectedIndex !== undefined) {
-      setActiveIndex(Math.max(0, Math.min(selectedIndex, Math.max(0, segments.length - 1))));
-      return;
+    manualScrollRef.current = false;
+    setActiveIndex(selectedIndex ?? (liveNow ? Math.max(0, computedCurrentIndex) : 0));
+  }, [dayLabel]);
+
+  useEffect(() => {
+    if (selectedIndex === undefined) return;
+    manualScrollRef.current = false;
+    setActiveIndex(Math.max(0, Math.min(selectedIndex, segments.length - 1)));
+  }, [selectedIndex, segments.length]);
+
+  useEffect(() => {
+    if (!liveNow || selectedIndex !== undefined || manualScrollRef.current) return;
+    if (computedCurrentIndex >= 0) setActiveIndex(computedCurrentIndex);
+  }, [computedCurrentIndex, liveNow, selectedIndex]);
+
+  useEffect(() => {
+    if (expanded || !segments.length || manualScrollRef.current) return;
+    const strip = stripRef.current;
+    const active = activeRef.current;
+    if (strip && active) {
+      const left = strip.scrollLeft + active.getBoundingClientRect().left - strip.getBoundingClientRect().left - (strip.clientWidth - active.clientWidth) / 2;
+      strip.scrollTo({ left, behavior: "smooth" });
     }
-
-    setActiveIndex(liveNow ? computedCurrentIndex : 0);
-  }, [selectedIndex, liveNow, computedCurrentIndex, dayLabel, segments.length]);
-
-  useEffect(() => {
-    if (expanded || !segments.length) return;
-    activeRef.current?.scrollIntoView({
-      behavior: "auto",
-      block: "nearest",
-      inline: "nearest",
-    });
   }, [activeIndex, expanded, dayLabel, segments.length]);
 
   const footerText = alert
@@ -175,14 +184,14 @@ export default function DayCard({
       ? `📝 ${note}`
       : "Add a note for this day";
 
-  const currentTimeLabel = liveNow ? formatMinutes(liveMinutes) : nowTime;
+  const currentTimeLabel = liveNow && liveMinutes !== null ? formatMinutes(liveMinutes) : nowTime;
   const markerPosition = liveNow
-    ? Math.max(0, Math.min(100, ((liveMinutes - 6 * 60) / (18 * 60)) * 100))
+    ? Math.max(0, Math.min(100, (((liveMinutes ?? 0) - 6 * 60) / (18 * 60)) * 100))
     : Math.max(0, Math.min(100, nowPositionPercent ?? 50));
 
   const currentSegment = segments[computedCurrentIndex];
   const progress = liveNow
-    ? Math.max(0, Math.min(100, progressForSegment(currentSegment, liveMinutes, segmentProgressPercent)))
+    ? Math.max(0, Math.min(100, progressForSegment(currentSegment, liveMinutes ?? 0, segmentProgressPercent)))
     : Math.max(0, Math.min(100, segmentProgressPercent));
 
   const totalWeight = useMemo(
@@ -191,6 +200,7 @@ export default function DayCard({
   );
 
   function selectSegment(index: number) {
+    manualScrollRef.current = false;
     setActiveIndex(index);
     onSelectSegment?.(index);
   }
@@ -263,7 +273,7 @@ export default function DayCard({
       {!expanded ? (
         <>
           {segments.length ? (
-            <section className={styles.focusStrip} aria-label="Scrollable itinerary segments">
+            <section ref={stripRef} className={styles.focusStrip} aria-label="Scrollable itinerary segments" onPointerDown={() => { manualScrollRef.current = true; }} onWheel={() => { manualScrollRef.current = true; }}>
               <div className={styles.rail}>
                 {segments.map((segment, index) => {
                   const active = index === activeIndex;
@@ -339,7 +349,8 @@ export default function DayCard({
               return (
                 <article
                   key={`${segment.title}-timeline-${index}`}
-                  className={`${styles.timelineRow} ${isCurrent ? styles.currentRow : ""}`}
+                  className={`${styles.timelineRow} ${isCurrent ? styles.currentRow : ""} ${index === activeIndex ? styles.selectedRow : ""}`}
+                  role="button" tabIndex={0} aria-label={`Select ${segment.title}`} onClick={() => selectSegment(index)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectSegment(index); } }}
                 >
                   <span className={styles.timelineTime}>{segment.start}</span>
                   <span className={`${styles.timelineNode} ${kindClass[segment.kind]}`} aria-hidden="true">
