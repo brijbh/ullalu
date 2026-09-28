@@ -9,20 +9,16 @@ import {
   DEFAULT_DRAFT,
   DEFAULT_TRIP_DAYS,
   formatTripDate,
-  getDraft,
   getTripDays,
   saveTripDays,
   signatureFromSegments,
   type PlannerDay,
-  type TripDraft,
 } from "../../lib/tripSession";
 
 export default function TripOverviewPage() {
-  const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
   const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
 
   useEffect(() => {
-    setDraft(getDraft());
     setDays(getTripDays());
   }, []);
 
@@ -53,8 +49,8 @@ export default function TripOverviewPage() {
 
           <div className={`${styles.tripHead} ${parity.tripHeadIllustrated}`}>
             <div>
-              <h1>{draft.name || "Japan 2026"}</h1>
-              <p>{formatTripDate(draft.startDate)} – {formatTripDate(draft.endDate)}</p>
+              <h1>{DEFAULT_DRAFT.name}</h1>
+              <p>{formatTripDate(DEFAULT_DRAFT.startDate)} – {formatTripDate(DEFAULT_DRAFT.endDate)}</p>
               <p>Tokyo · Kyoto · Osaka</p>
             </div>
             <TripArt kind="japan" className={parity.tripHeadArt} />
@@ -75,7 +71,7 @@ export default function TripOverviewPage() {
 
           <div className={styles.overviewActions}>
             <Link href="/trip/japan-2026/day/1">Continue Day 1</Link>
-            <Link href="/today">Preview live state</Link>
+            <Link href="/today">Preview Japan live state</Link>
           </div>
 
           <div className={styles.daysList}>

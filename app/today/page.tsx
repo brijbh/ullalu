@@ -1,11 +1,12 @@
 "use client";
 
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import DayCard, { type DayCardSegment, type DayCardSegmentKind, type DayNavigationItem } from "../components/DayCard";
 import { BottomNav, SuggestionIcon } from "../components/JourneyUI";
+import { durationLabel, iconForKind, minutesBetween } from "../lib/tripSession";
 
 type LiveDay = {
   label: string;
@@ -13,6 +14,14 @@ type LiveDay = {
   subtitle: string;
   freeTime: string;
   segments: DayCardSegment[];
+};
+
+type NewItem = {
+  kind: DayCardSegmentKind;
+  title: string;
+  start: string;
+  end: string;
+  detail: string;
 };
 
 const itemTypes = [
@@ -57,19 +66,12 @@ const initialDays: LiveDay[] = [
   { label: "SAT · 3 OCT", route: "Tokyo → Kyoto", subtitle: "Shinkansen, shrine and Gion", freeTime: "1h 30m", segments: tomorrowSegments },
 ];
 
-function defaultIcon(kind: DayCardSegmentKind) {
-  if (kind === "travel") return "🚆";
-  if (kind === "reservation") return "▣";
-  if (kind === "rest") return "🏨";
-  if (kind === "buffer") return "◷";
-  return "📍";
-}
-
 export default function TodayPage() {
   const [days, setDays] = useState<LiveDay[]>(initialDays);
   const [dayOffset, setDayOffset] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>(undefined);
   const addDialogRef = useRef<HTMLDialogElement | null>(null);
+  const [newItem, setNewItem] = useState<NewItem | null>(null);
   const [photoCount, setPhotoCount] = useState(0);
 
   const dayArrayIndex = dayOffset + 1;
@@ -87,17 +89,20 @@ export default function TodayPage() {
     [selectedIndex, dayOffset],
   );
 
-  function addQuickItem(kind: DayCardSegmentKind, title: string) {
+  function saveItem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!newItem) return;
+    const minutes = minutesBetween(newItem.start, newItem.end);
     const newSegment: DayCardSegment = {
-      kind,
-      icon: defaultIcon(kind),
-      title,
-      duration: "45m",
-      start: "17:15",
-      end: "18:00",
-      detail: "Quick item · edit later in the planner",
-      weight: .75,
-      width: 142,
+      kind: newItem.kind,
+      icon: iconForKind(newItem.kind),
+      title: newItem.title.trim(),
+      duration: durationLabel(minutes),
+      start: newItem.start,
+      end: newItem.end,
+      detail: newItem.detail.trim() || "No details yet",
+      weight: Math.max(.25, minutes / 60),
+      width: Math.max(132, Math.min(184, 122 + minutes / 8)),
     };
 
     setDays((current) => current.map((day, index) => (
@@ -106,6 +111,11 @@ export default function TodayPage() {
         : day
     )));
     addDialogRef.current?.close();
+    setNewItem(null);
+  }
+
+  function chooseItemType(kind: DayCardSegmentKind) {
+    setNewItem({ kind, title: "", start: "17:15", end: "18:00", detail: "" });
   }
 
   function handlePhotos(event: ChangeEvent<HTMLInputElement>) {
@@ -202,25 +212,61 @@ export default function TodayPage() {
       <dialog
         ref={addDialogRef}
         className={styles.addItemDialog}
+        aria-label="Add item to this day"
+        onClose={() => setNewItem(null)}
       >
         <div className={styles.sheetHandle} aria-hidden="true" />
         <div className={styles.composerSheetHead}>
           <div>
             <small>ADD ITEM</small>
-            <h2>Add to this day</h2>
+            <h2>{newItem ? "Add to this day" : "What are you adding?"}</h2>
           </div>
           <button type="button" onClick={() => addDialogRef.current?.close()} aria-label="Close">×</button>
         </div>
 
-        <div className={styles.itemTypeGrid}>
-          {itemTypes.map(([iconKind, title, kind]) => (
-            <button type="button" key={title} onClick={() => addQuickItem(kind, title)}>
-              <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
-              <strong>{title}</strong>
-              <span>Add a quick item now; fine-tune it later in the planner.</span>
-            </button>
-          ))}
-        </div>
+        {newItem ? (
+          <form className={styles.sheetForm} onSubmit={saveItem}>
+            <div className={styles.field}>
+              <label htmlFor="live-item-kind">Type</label>
+              <select id="live-item-kind" className={styles.input} value={newItem.kind} onChange={(event) => setNewItem({ ...newItem, kind: event.target.value as DayCardSegmentKind })}>
+                <option value="activity">Place / Activity</option>
+                <option value="travel">Transport</option>
+                <option value="reservation">Reservation</option>
+                <option value="rest">Hotel / Rest</option>
+                <option value="buffer">Buffer</option>
+              </select>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="live-item-title">Title</label>
+              <input id="live-item-title" className={styles.input} value={newItem.title} onChange={(event) => setNewItem({ ...newItem, title: event.target.value })} placeholder="e.g. Evening walk" required />
+            </div>
+            <div className={styles.composerTimeGrid}>
+              <div className={styles.field}>
+                <label htmlFor="live-item-start">Start</label>
+                <input id="live-item-start" type="time" className={styles.input} value={newItem.start} onChange={(event) => setNewItem({ ...newItem, start: event.target.value })} required />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="live-item-end">End</label>
+                <input id="live-item-end" type="time" className={styles.input} value={newItem.end} onChange={(event) => setNewItem({ ...newItem, end: event.target.value })} required />
+              </div>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="live-item-detail">Details</label>
+              <input id="live-item-detail" className={styles.input} value={newItem.detail} onChange={(event) => setNewItem({ ...newItem, detail: event.target.value })} placeholder="Location, booking, notes…" />
+            </div>
+            <button className={styles.primaryButton} type="submit">Add to day</button>
+          </form>
+        ) : (
+          <div className={styles.itemTypeGrid}>
+            {itemTypes.map(([iconKind, title, kind]) => (
+              <button type="button" key={title} onClick={() => chooseItemType(kind)}>
+                <span className={styles.itemTypeIcon}><SuggestionIcon kind={iconKind} /></span>
+                <strong>{title}</strong>
+                <span>Choose this type, then add its time and details.</span>
+              </button>
+            ))}
+          </div>
+        )}
       </dialog>
     </main>
   );

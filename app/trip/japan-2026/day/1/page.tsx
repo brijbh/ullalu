@@ -10,7 +10,6 @@ import {
   DEFAULT_TRIP_DAYS,
   durationLabel,
   freeTimeLabel,
-  getDraft,
   getTripDays,
   iconForKind,
   minutesBetween,
@@ -21,7 +20,6 @@ import {
   withCalculatedFreeTime,
   type PlannerDay,
   type PlannerSegment,
-  type TripDraft,
 } from "../../../../lib/tripSession";
 
 const itemTypes = [
@@ -55,7 +53,6 @@ function shortDate(date: string) {
 }
 
 export default function DayComposerPage() {
-  const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
   const [days, setDays] = useState<PlannerDay[]>(DEFAULT_TRIP_DAYS);
   const [dayIndex, setDayIndex] = useState(0);
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | undefined>();
@@ -65,7 +62,6 @@ export default function DayComposerPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    setDraft(getDraft());
     const loadedDays = getTripDays();
     setDays(loadedDays);
 
@@ -237,7 +233,7 @@ export default function DayComposerPage() {
 
           <div className={styles.tripHead}>
             <div>
-              <h1>{draft.name || "Japan 2026"}</h1>
+              <h1>{DEFAULT_DRAFT.name}</h1>
               <p>Build Day {currentDay.day} · {currentDay.date}</p>
             </div>
             {saved ? <span className={styles.savedPill}>Saved</span> : null}
