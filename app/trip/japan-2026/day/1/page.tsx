@@ -183,7 +183,7 @@ export default function DayComposerPage() {
       title: editor.title.trim() || "Untitled item",
       duration: durationLabel(minutes),
       start: editor.start,
-      end: editor.end,
+      end: normalizeEndTime(editor.start, editor.end),
       detail: editor.detail.trim() || "No details yet",
       weight: Math.max(.25, minutes / 60),
       width: Math.max(132, Math.min(184, 122 + minutes / 8)),
