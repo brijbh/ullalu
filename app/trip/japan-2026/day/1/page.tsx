@@ -13,6 +13,7 @@ import {
   getTripDays,
   iconForKind,
   minutesBetween,
+  normalizeEndTime,
   saveDay1Segments,
   saveTripDays,
   sortPlannerSegments,
@@ -164,7 +165,7 @@ export default function DayComposerPage() {
         id: editor.id ?? "",
         title: editor.title.trim() || "Untitled item",
         start: editor.start,
-        end: editor.end,
+        end: normalizeEndTime(editor.start, editor.end),
       },
       segments,
     );
@@ -421,7 +422,7 @@ export default function DayComposerPage() {
             {editorError ? (
               <p className={styles.editorError} role="alert">{editorError}</p>
             ) : (
-              <p className={styles.timeHelp}>Items are placed chronologically. End time must be after start time and cannot overlap another item.</p>
+              <p className={styles.timeHelp}>Items are placed chronologically. If the end time is earlier than the start, Ullalu treats it as ending the next day. Overlaps are still blocked.</p>
             )}
 
             <div className={styles.field}>
