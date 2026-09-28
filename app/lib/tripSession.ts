@@ -64,7 +64,7 @@ export const DEFAULT_DAY1_SEGMENTS: PlannerSegment[] = [
 ];
 
 export const DEFAULT_TRIP_DAYS: PlannerDay[] = [
-  { day: 1, date: "Tue, 29 Sep", route: "BLR → Tokyo", subtitle: "Flight to Tokyo, arrive and rest", planned: true, segments: DEFAULT_DAY1_SEGMENTS },
+  { day: 1, date: "Tue, 29 Sep", route: "BLR → Tokyo", subtitle: "Flight to Tokyo, arrive and rest", planned: true, note: "Immigration may take time.", segments: DEFAULT_DAY1_SEGMENTS },
   { day: 2, date: "Wed, 30 Sep", route: "Tokyo", subtitle: "Neighbourhoods and first full day", planned: true, segments: [
     { id: "d2-1", kind: "travel", icon: "🚆", title: "To Shibuya", duration: "25m", start: "09:00", end: "09:25", detail: "Metro", weight: .5 },
     { id: "d2-2", kind: "activity", icon: "📍", title: "Shibuya", duration: "2h", start: "09:30", end: "11:30", detail: "Crossing · shops", weight: 1.5 },
