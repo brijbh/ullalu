@@ -165,7 +165,7 @@ export default function DayCard({
     activeRef.current?.scrollIntoView({
       behavior: "auto",
       block: "nearest",
-      inline: "center",
+      inline: "nearest",
     });
   }, [activeIndex, expanded, dayLabel, segments.length]);
 
