@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "../JourneyFlow.module.css";
+import type { PlaceRef } from "../lib/tripSession";
 
 type Place = {
   name: string;
@@ -45,7 +46,7 @@ function localTime(now: Date | null, zone: string) {
 
 async function currentTemperature(place: Place, signal: AbortSignal) {
   const cached = cachedTemperature(place);
-  if (cached !== undefined) return cached;
+  if (cached !== undefined && place.zone !== "UTC") return { temperature: cached, zone: place.zone };
 
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.searchParams.set("latitude", String(place.latitude));
@@ -53,14 +54,15 @@ async function currentTemperature(place: Place, signal: AbortSignal) {
   url.searchParams.set("current", "temperature_2m");
   url.searchParams.set("temperature_unit", "celsius");
   url.searchParams.set("forecast_days", "1");
+  url.searchParams.set("timezone", "auto");
 
   const response = await fetch(url, { signal });
   if (!response.ok) throw new Error("Weather unavailable");
-  const data = await response.json() as { current?: { temperature_2m?: number } };
+  const data = await response.json() as { current?: { temperature_2m?: number }; timezone?: string };
   const temperature = data.current?.temperature_2m;
   if (typeof temperature !== "number" || !Number.isFinite(temperature)) throw new Error("Weather unavailable");
   weatherCache.set(place.name, { temperature, fetchedAt: Date.now() });
-  return temperature;
+  return { temperature, zone: data.timezone ?? place.zone };
 }
 
 function StatusCard({ label, place, now, temperature }: {
@@ -83,10 +85,23 @@ function StatusCard({ label, place, now, temperature }: {
   );
 }
 
-export default function TravelStatusBar({ destination = "Tokyo" }: { destination?: Destination }) {
+export default function TravelStatusBar({ destination = "Tokyo" }: { destination?: Destination | PlaceRef }) {
   const [now, setNow] = useState<Date | null>(null);
   const [temperatures, setTemperatures] = useState<Temperatures>({});
-  const currentPlace = destinations[destination];
+  const [resolvedPlace, setResolvedPlace] = useState<Place | null>(null);
+  const currentPlace = typeof destination === "string" ? destinations[destination] : resolvedPlace;
+
+  useEffect(() => {
+    if (typeof destination === "string") return;
+    const controller = new AbortController();
+    fetch(`/api/maps/places/${encodeURIComponent(destination.id)}`, { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("Location unavailable")))
+      .then((data) => {
+        if (Number.isFinite(data.location?.latitude) && Number.isFinite(data.location?.longitude))
+          setResolvedPlace({ name: destination.name, zone: "UTC", latitude: data.location.latitude, longitude: data.location.longitude });
+      }).catch(() => {});
+    return () => controller.abort();
+  }, [destination]);
 
   useEffect(() => {
     setNow(new Date());
@@ -95,6 +110,7 @@ export default function TravelStatusBar({ destination = "Tokyo" }: { destination
   }, []);
 
   useEffect(() => {
+    if (!currentPlace) return;
     const controller = new AbortController();
     let active = true;
     setTemperatures({
@@ -108,9 +124,13 @@ export default function TravelStatusBar({ destination = "Tokyo" }: { destination
       ]).then(([homeResult, destinationResult]) => {
         if (!active) return;
         setTemperatures({
-          home: homeResult.status === "fulfilled" ? homeResult.value : undefined,
-          destination: destinationResult.status === "fulfilled" ? destinationResult.value : undefined,
+          home: homeResult.status === "fulfilled" ? homeResult.value.temperature : undefined,
+          destination: destinationResult.status === "fulfilled" ? destinationResult.value.temperature : undefined,
         });
+        if (destinationResult.status === "fulfilled" && typeof destination !== "string") {
+          const zone = destinationResult.value.zone;
+          setResolvedPlace((previous) => previous && previous.zone !== zone ? { ...previous, zone } : previous);
+        }
       });
     };
     updateWeather();
@@ -120,12 +140,12 @@ export default function TravelStatusBar({ destination = "Tokyo" }: { destination
       controller.abort();
       window.clearInterval(weather);
     };
-  }, [currentPlace]);
+  }, [currentPlace, destination]);
 
   return (
-    <aside className={styles.travelStatusBar} aria-label="Current time and temperature at home and in Japan">
+    <aside className={styles.travelStatusBar} aria-label="Current time and temperature at home and the destination">
       <StatusCard label="HOME" place={home} now={now} temperature={temperatures.home} />
-      <StatusCard label="JAPAN" place={currentPlace} now={now} temperature={temperatures.destination} />
+      {currentPlace ? <StatusCard label="TRIP" place={currentPlace} now={now} temperature={temperatures.destination} /> : null}
     </aside>
   );
 }

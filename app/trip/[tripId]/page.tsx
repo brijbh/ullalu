@@ -7,12 +7,27 @@ import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
 import { AppHeader, BottomNav, Signature } from "../../components/JourneyUI";
 import { formatTripDate, signatureFromSegments, tripDayPath, type SavedTrip } from "../../lib/tripSession";
-import { exportTrip, getTrip } from "../../lib/tripStore";
+import { exportTrip, getTrip, saveTrip } from "../../lib/tripStore";
 
 export default function TripOverviewPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const [trip, setTrip] = useState<SavedTrip | null>(null);
+  const [importedNotice, setImportedNotice] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [name, setName] = useState("");
+  const [renameError, setRenameError] = useState("");
   useEffect(() => { getTrip(tripId).then((trip) => setTrip(trip ?? null)); }, [tripId]);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("imported") !== "1") return;
+    setImportedNotice(true);
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+  }, []);
+
+  async function renameTrip() {
+    if (!trip || !name.trim()) return;
+    try { setTrip(await saveTrip({ ...trip, metadata: { ...trip.metadata, name: name.trim() } })); setRenaming(false); setRenameError(""); }
+    catch (error) { setRenameError(String(error)); }
+  }
   const days = trip?.days ?? [];
   const planned = useMemo(() => days.filter((day) => day.planned).length, [days]);
   const nextDay = days.find((day) => !day.planned)?.day ?? days.at(-1)?.day ?? 1;
@@ -23,12 +38,20 @@ export default function TripOverviewPage() {
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader backHref="/trips" note={trip.metadata.endingPlace} />
+          <AppHeader backHref="/trips" note={trip.metadata.endingPlace}
+            travelDestination={/kyoto/i.test(trip.metadata.endingPlace) ? "Kyoto" : /japan|tokyo/i.test(trip.metadata.endingPlace) ? "Tokyo" : trip.metadata.endingPlaceRef} />
+          {importedNotice ? <p role="status">Trip imported and saved to this device. You can edit it like any other trip.</p> : null}
           <div className={`${styles.tripHead} ${parity.tripHeadIllustrated}`}>
             <div>
-              <h1>{trip.metadata.name}</h1>
+              {renaming ? <form onSubmit={(event) => { event.preventDefault(); void renameTrip(); }}>
+                <label htmlFor="rename-trip">Trip name</label>
+                <input id="rename-trip" className={styles.input} value={name} onChange={(event) => setName(event.target.value)} required />
+                <button type="submit">Save name</button><button type="button" onClick={() => setRenaming(false)}>Cancel</button>
+                {renameError ? <p role="alert">{renameError}</p> : null}
+              </form> : <h1>{trip.metadata.name}</h1>}
               <p>{formatTripDate(trip.metadata.startDate)} – {formatTripDate(trip.metadata.endDate)}</p>
               <p>{trip.metadata.startingPlace} → {trip.metadata.endingPlace}</p>
+              {!renaming ? <button type="button" onClick={() => { setName(trip.metadata.name); setRenaming(true); }}>Rename trip</button> : null}
             </div>
           </div>
           <div className={styles.overviewStats}>

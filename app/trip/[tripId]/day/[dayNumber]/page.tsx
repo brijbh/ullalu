@@ -21,6 +21,8 @@ import {
   type PlannerSegment,
 } from "../../../../lib/tripSession";
 import { getTrip, saveTrip } from "../../../../lib/tripStore";
+import PlacePicker from "../../../../components/PlacePicker";
+import type { JourneyFact, PlaceRef, RouteMode, RouteOption } from "../../../../lib/tripSession";
 
 const itemTypes = [
   ["place", "Place / Activity", "Add somewhere you want to spend time", "activity"],
@@ -37,6 +39,16 @@ type EditorState = {
   start: string;
   end: string;
   detail: string;
+  place?: PlaceRef;
+  placeQuery: string;
+  origin?: PlaceRef;
+  originQuery: string;
+  destination?: PlaceRef;
+  destinationQuery: string;
+  mode: RouteMode;
+  alternatives: RouteOption[];
+  selectedRoute: number;
+  checkedAt?: string;
 };
 
 const blankEditor: EditorState = {
@@ -45,6 +57,7 @@ const blankEditor: EditorState = {
   start: "10:00",
   end: "11:00",
   detail: "",
+  mode: "TRANSIT", alternatives: [], selectedRoute: 0, placeQuery: "", originQuery: "", destinationQuery: "",
 };
 
 function shortDate(date: string) {
@@ -64,6 +77,9 @@ export default function DayComposerPage() {
   const [editorError, setEditorError] = useState("");
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [mapBusy, setMapBusy] = useState(false);
+  const [mapError, setMapError] = useState("");
+  const [placeHours, setPlaceHours] = useState<string[]>([]);
 
   useEffect(() => { getTrip(params.tripId).then((trip) => setTrip(trip ?? null)); }, [params.tripId]);
   useEffect(() => {
@@ -140,6 +156,8 @@ export default function DayComposerPage() {
 
   function openEdit(segment: PlannerSegment) {
     setEditorError("");
+    setPlaceHours([]); setMapError("");
+    if (segment.place) void loadPlaceDetails(segment.place);
     setEditor({
       id: segment.id,
       kind: segment.kind,
@@ -147,9 +165,42 @@ export default function DayComposerPage() {
       start: segment.start,
       end: segment.end.replace(" +1", ""),
       detail: segment.detail,
+      place: segment.place,
+      placeQuery: segment.place?.name ?? "",
+      origin: segment.journey?.origin,
+      originQuery: segment.journey?.origin.name ?? "",
+      destination: segment.journey?.destination,
+      destinationQuery: segment.journey?.destination.name ?? "",
+      mode: segment.journey?.mode ?? "TRANSIT",
+      alternatives: segment.journey?.alternatives ?? [],
+      selectedRoute: segment.journey?.selected ?? 0,
+      checkedAt: segment.journey?.checkedAt,
     });
     const dialog = addDialogRef.current;
     if (dialog && !dialog.open) dialog.showModal();
+  }
+
+  async function loadPlaceDetails(place: PlaceRef) {
+    setMapError(""); setPlaceHours([]);
+    try {
+      const response = await fetch(`/api/maps/places/${encodeURIComponent(place.id)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setPlaceHours(data.hours ?? []);
+    } catch (error) { setMapError(String(error)); }
+  }
+
+  async function findRoutes() {
+    if (!editor?.origin || !editor.destination) return;
+    setMapBusy(true); setMapError("");
+    try {
+      const response = await fetch("/api/maps/routes", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ origin: editor.origin.id, destination: editor.destination.id, mode: editor.mode }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setEditor((current) => current ? { ...current, alternatives: data.alternatives, selectedRoute: 0,
+        checkedAt: new Date().toISOString() } : current);
+    } catch (error) { setMapError(String(error)); } finally { setMapBusy(false); }
   }
 
   function saveEditor(event: FormEvent<HTMLFormElement>) {
@@ -172,6 +223,9 @@ export default function DayComposerPage() {
     }
 
     const minutes = minutesBetween(editor.start, editor.end);
+    const journey: JourneyFact | undefined = editor.kind === "travel" && editor.origin && editor.destination && editor.alternatives.length
+      ? { origin: editor.origin, destination: editor.destination, mode: editor.mode, selected: editor.selectedRoute,
+          alternatives: editor.alternatives, checkedAt: editor.checkedAt ?? new Date().toISOString() } : undefined;
     const next: PlannerSegment = {
       id: editor.id ?? `segment-${Date.now()}`,
       kind: editor.kind,
@@ -183,6 +237,8 @@ export default function DayComposerPage() {
       detail: editor.detail.trim() || "No details yet",
       weight: Math.max(.25, minutes / 60),
       width: Math.max(132, Math.min(184, 122 + minutes / 8)),
+      place: editor.kind === "activity" || editor.kind === "rest" ? editor.place : undefined,
+      journey,
     };
 
     const updated = editor.id
@@ -228,7 +284,8 @@ export default function DayComposerPage() {
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader backHref={`/trip/${trip?.id}`} note={trip?.metadata.endingPlace} />
+          <AppHeader backHref={`/trip/${trip?.id}`} note={trip?.metadata.endingPlace}
+            travelDestination={/kyoto/i.test(trip.metadata.endingPlace) ? "Kyoto" : /japan|tokyo/i.test(trip.metadata.endingPlace) ? "Tokyo" : trip.metadata.endingPlaceRef} />
 
           <div className={styles.tripHead}>
             <div>
@@ -281,6 +338,7 @@ export default function DayComposerPage() {
                   <strong>{segment.title}</strong>
                   <span>{segment.start}–{segment.end} · {segment.duration}</span>
                   <small>{segment.kind === "buffer" ? `Intentional buffer · ${segment.detail}` : segment.detail}</small>
+                  {segment.journey?.alternatives[segment.journey.selected] ? <small>{segment.journey.mode.toLowerCase().replace("_", " ")} · {Math.round(segment.journey.alternatives[segment.journey.selected].distanceMeters / 100) / 10} km · {durationLabel(Math.round(segment.journey.alternatives[segment.journey.selected].durationSeconds / 60))} route estimate</small> : null}
                 </span>
                 <span className={styles.composerItemActions}>
                   <button type="button" onClick={(event) => { event.stopPropagation(); openEdit(segment); }}>Edit</button>
@@ -385,6 +443,45 @@ export default function DayComposerPage() {
                 required
               />
             </div>
+
+            {editor.kind === "activity" || editor.kind === "rest" ? <>
+              <PlacePicker id="item-place" label="Place" value={editor.placeQuery} place={editor.place}
+                onChange={(placeQuery, place) => { setEditor((current) => current ? { ...current, placeQuery, place } : current); setPlaceHours([]); if (place) void loadPlaceDetails(place); }} />
+              {editor.place ? <>
+                {process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? <iframe className={styles.mapPreview} title={`Map of ${editor.place.name}`}
+                  loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY)}&q=place_id:${encodeURIComponent(editor.place.id)}`} /> : null}
+                <a target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(editor.place.name)}&query_place_id=${encodeURIComponent(editor.place.id)}`}>Preview on Google Maps ↗</a>
+              </> : null}
+              {placeHours.length ? <details><summary>Opening hours</summary><ul>{placeHours.map((hours) => <li key={hours}>{hours}</li>)}</ul></details> : null}
+            </> : null}
+
+            {editor.kind === "travel" ? <>
+              <PlacePicker id="journey-origin" label="From" value={editor.originQuery} place={editor.origin}
+                onChange={(originQuery, origin) => setEditor((current) => current ? { ...current, originQuery, origin, alternatives: [] } : current)} />
+              <PlacePicker id="journey-destination" label="To" value={editor.destinationQuery} place={editor.destination}
+                onChange={(destinationQuery, destination) => setEditor((current) => current ? { ...current, destinationQuery, destination, alternatives: [] } : current)} />
+              <div className={styles.field}><label htmlFor="journey-mode">Transport mode</label>
+                <select id="journey-mode" className={styles.input} value={editor.mode}
+                  onChange={(event) => setEditor({ ...editor, mode: event.target.value as RouteMode, alternatives: [] })}>
+                  <option value="TRANSIT">Public transit</option><option value="DRIVE">Drive</option>
+                  <option value="WALK">Walk</option><option value="BICYCLE">Bicycle</option><option value="TWO_WHEELER">Two wheeler</option>
+                </select></div>
+              <button type="button" disabled={!editor.origin || !editor.destination || mapBusy} onClick={findRoutes}>
+                {mapBusy ? "Finding routes…" : "Find routes"}</button>
+              {editor.alternatives.map((route, index) => <label key={index} className={styles.routeOption}>
+                <input type="radio" name="route" checked={editor.selectedRoute === index}
+                  onChange={() => setEditor({ ...editor, selectedRoute: index })} />
+                {route.label}: {Math.round(route.distanceMeters / 100) / 10} km · {durationLabel(Math.round(route.durationSeconds / 60))}
+              </label>)}
+              {editor.origin && editor.destination ? <a target="_blank" rel="noopener noreferrer"
+                href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(editor.origin.name)}&origin_place_id=${encodeURIComponent(editor.origin.id)}&destination=${encodeURIComponent(editor.destination.name)}&destination_place_id=${encodeURIComponent(editor.destination.id)}`}>
+                Preview route on Google Maps ↗</a> : null}
+              {editor.origin && editor.destination && editor.mode !== "TWO_WHEELER" && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? <iframe
+                className={styles.mapPreview} title="Journey map preview" loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                src={`https://www.google.com/maps/embed/v1/directions?key=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY)}&origin=place_id:${encodeURIComponent(editor.origin.id)}&destination=place_id:${encodeURIComponent(editor.destination.id)}&mode=${editor.mode === "DRIVE" ? "driving" : editor.mode === "WALK" ? "walking" : editor.mode === "BICYCLE" ? "bicycling" : "transit"}`} /> : null}
+            </> : null}
+            {mapError ? <p role="alert">{mapError}</p> : null}
 
             <div className={styles.composerTimeGrid}>
               <div className={styles.field}>

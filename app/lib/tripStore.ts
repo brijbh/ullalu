@@ -124,6 +124,12 @@ export async function getTrips(): Promise<SavedTrip[]> {
 
 export async function getTrip(id: string): Promise<SavedTrip | undefined> { return read<SavedTrip>(TRIPS, id); }
 
+// The provider belongs to app settings, not the portable trip document.
+export type StorageProvider = "device" | "drive" | "cloud";
+export async function getTripStorage(id: string): Promise<StorageProvider> {
+  return (await read<StorageProvider>(SETTINGS, `storage:${id}`)) ?? "device";
+}
+
 export async function getActiveTrip(): Promise<SavedTrip | undefined> {
   const active = await read<string>(SETTINGS, "activeTrip");
   return (active ? await getTrip(active) : undefined) ?? (await getTrips()).at(-1);
@@ -208,6 +214,9 @@ export async function importTrip(file: File): Promise<SavedTrip> {
   const parsed: unknown = JSON.parse(await file.text());
   const trip = parseTripDocument(parsed);
   // A duplicate backup becomes a separate trip; the existing trip is never overwritten.
-  const id = await getTrip(trip.id) ? `${trip.id}-${randomSuffix()}` : trip.id;
-  return saveTrip({ ...trip, id });
+  const duplicate = Boolean(await getTrip(trip.id));
+  const id = duplicate ? `${trip.id}-${randomSuffix()}` : trip.id;
+  return saveTrip({ ...trip, id, metadata: { ...trip.metadata,
+    name: duplicate ? `${trip.metadata.name} — imported copy` : trip.metadata.name },
+    importedAt: new Date().toISOString(), importedFromId: trip.id });
 }

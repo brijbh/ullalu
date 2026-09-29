@@ -1972,3 +1972,18 @@
 .moreRow:is(button):focus-visible { outline: 2px solid #32699f; outline-offset: -2px; }
 .storageOption:disabled { opacity: .55; cursor: default; }
 .storageOption:disabled:hover { border-color: #d2d8df; background: rgba(255,255,255,.72); }
+.placeSuggestions {
+  display: grid;
+  max-height: 210px;
+  overflow-y: auto;
+  border: 1px solid #d5c9b5;
+  border-radius: 12px;
+  background: #fffdf8;
+  position: relative;
+  z-index: 3;
+}
+.placeSuggestions button { padding: 10px 12px; text-align: left; border: 0; border-bottom: 1px solid #eee7dc; background: transparent; color: #292623; cursor: pointer; }
+.placeSuggestions button:hover, .placeSuggestions button:focus { background: #f7eee1; }
+.placeSuggestions small { padding: 5px 12px; color: #555; }
+.routeOption { display: flex; align-items: center; gap: 8px; padding: 9px; }
+.mapPreview { width: 100%; height: 210px; border: 0; border-radius: 12px; }

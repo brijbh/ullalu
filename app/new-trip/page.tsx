@@ -6,6 +6,7 @@ import styles from "../JourneyFlow.module.css";
 import { AppHeader, BottomNav, MountainFooter } from "../components/JourneyUI";
 import { DEFAULT_DRAFT, type TripDraft } from "../lib/tripSession";
 import { getDraft, saveDraft } from "../lib/tripStore";
+import PlacePicker from "../components/PlacePicker";
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function NewTripPage() {
       ...current,
       startingPlace: current.endingPlace,
       endingPlace: current.startingPlace,
+      startingPlaceRef: current.endingPlaceRef,
+      endingPlaceRef: current.startingPlaceRef,
     }));
   }
 
@@ -86,27 +89,13 @@ export default function NewTripPage() {
               </div>
             </div>
 
-            <div className={styles.field}>
-              <label htmlFor="starting-place">Starting place</label>
-              <input
-                id="starting-place"
-                className={styles.input}
-                value={draft.startingPlace}
-                onChange={(event) => update("startingPlace", event.target.value)}
-                required
-              />
-            </div>
+            <PlacePicker id="starting-place" label="Starting place" value={draft.startingPlace} place={draft.startingPlaceRef}
+              onChange={(startingPlace, startingPlaceRef) => setDraft((current) => ({ ...current, startingPlace, startingPlaceRef }))} required />
 
             <div className={styles.field}>
-              <label htmlFor="ending-place">Ending place</label>
               <div className={styles.inputWrap}>
-                <input
-                  id="ending-place"
-                  className={styles.input}
-                  value={draft.endingPlace}
-                  onChange={(event) => update("endingPlace", event.target.value)}
-                  required
-                />
+                <PlacePicker id="ending-place" label="Ending place" value={draft.endingPlace} place={draft.endingPlaceRef}
+                  onChange={(endingPlace, endingPlaceRef) => setDraft((current) => ({ ...current, endingPlace, endingPlaceRef }))} required />
                 <button className={styles.swapButton} type="button" aria-label="Swap starting and ending places" onClick={swapPlaces}>↕</button>
               </div>
             </div>

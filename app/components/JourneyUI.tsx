@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import TravelStatusBar from "./TravelStatusBar";
+import type { PlaceRef } from "../lib/tripSession";
 
 export type SignatureKind = "travel" | "activity" | "free" | "reservation" | "rest" | "buffer";
 
@@ -23,7 +24,7 @@ export function AppHeader({
   menu?: boolean;
   showBack?: boolean;
   action?: "menu" | "search";
-  travelDestination?: "Tokyo" | "Kyoto";
+  travelDestination?: "Tokyo" | "Kyoto" | PlaceRef;
 }) {
   const resolvedAction = action ?? (menu ? "menu" : undefined);
 

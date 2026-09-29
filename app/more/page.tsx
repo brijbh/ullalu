@@ -22,7 +22,7 @@ export default function MorePage() {
     try {
       const imported = await importTrip(file);
       setTrip(imported);
-      router.push(`/trip/${encodeURIComponent(imported.id)}`);
+      router.push(`/trip/${encodeURIComponent(imported.id)}?imported=1`);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not import this trip."); }
     if (fileInput.current) fileInput.current.value = "";
   }

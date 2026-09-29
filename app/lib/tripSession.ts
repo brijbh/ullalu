@@ -7,10 +7,19 @@ export type TripDraft = {
   startingPlace: string;
   endingPlace: string;
   returnToStart: boolean;
+  startingPlaceRef?: PlaceRef;
+  endingPlaceRef?: PlaceRef;
 };
+
+export type PlaceRef = { provider: "google"; id: string; name: string; address?: string };
+export type RouteMode = "DRIVE" | "WALK" | "BICYCLE" | "TRANSIT" | "TWO_WHEELER";
+export type RouteOption = { distanceMeters: number; durationSeconds: number; label: string };
+export type JourneyFact = { origin: PlaceRef; destination: PlaceRef; mode: RouteMode; selected: number; alternatives: RouteOption[]; checkedAt: string };
 
 export type PlannerSegment = DayCardSegment & {
   id: string;
+  place?: PlaceRef;
+  journey?: JourneyFact;
 };
 
 export type PlannerDay = {
@@ -239,6 +248,8 @@ export type SavedTrip = {
   id: string;
   createdAt: string;
   updatedAt: string;
+  importedAt?: string;
+  importedFromId?: string;
   metadata: TripDraft;
   days: PlannerDay[];
   notes: TripNote[];

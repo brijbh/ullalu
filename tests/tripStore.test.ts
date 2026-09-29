@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { indexedDB, IDBKeyRange } from "fake-indexeddb";
-import { getActiveTrip, getDraft, getTrip, getTrips, importTrip, parseTripDocument, saveTrip } from "../app/lib/tripStore";
+import { getActiveTrip, getDraft, getTrip, getTripStorage, getTrips, importTrip, parseTripDocument, saveTrip } from "../app/lib/tripStore";
 import { freeTimeLabel, type TripDraft } from "../app/lib/tripSession";
 
 class MemoryStorage {
@@ -52,4 +52,9 @@ test("legacy itinerary migrates once and remains a complete local document", asy
   assert.equal(restored.days[0].segments[0].title, "Hotel");
   assert.equal((await getTrips()).length, 2);
   assert.equal((await getTrip(edited.id))?.id, edited.id);
+  assert.equal(await getTripStorage(restored.id), "device");
+  assert.ok(restored.importedAt);
+  assert.equal(restored.importedFromId, edited.id);
+  assert.equal(restored.metadata.name, "Japan — imported copy");
+  assert.equal(edited.importedAt, undefined);
 });
