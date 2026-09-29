@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatTripDate, getActiveTrip, type SavedTrip } from "./lib/tripSession";
+import { formatTripDate, type SavedTrip } from "./lib/tripSession";
+import { getActiveTrip } from "./lib/tripStore";
 import Link from "next/link";
 import styles from "./Home.module.css";
 
@@ -208,10 +209,10 @@ function SmallJourneyCard({ journey, phaseLabel }: { journey: Journey; phaseLabe
 
 export default function Home() {
   const [activeTrip, setActiveTrip] = useState<SavedTrip | null>(null);
-  useEffect(() => { setActiveTrip(getActiveTrip() ?? null); }, []);
+  useEffect(() => { getActiveTrip().then((trip) => setActiveTrip(trip ?? null)); }, []);
   const japan: Journey = {
-    name: activeTrip?.draft.name ?? "Plan your next journey",
-    dates: activeTrip ? `${formatTripDate(activeTrip.draft.startDate)} – ${formatTripDate(activeTrip.draft.endDate)}` : "Choose dates and places",
+    name: activeTrip?.metadata.name ?? "Plan your next journey",
+    dates: activeTrip ? `${formatTripDate(activeTrip.metadata.startDate)} – ${formatTripDate(activeTrip.metadata.endDate)}` : "Choose dates and places",
     meta: activeTrip ? `${activeTrip.days.filter((day) => day.planned).length} of ${activeTrip.days.length} days planned` : "Start with your itinerary",
     countdown: activeTrip ? "Continue planning" : "New trip",
     illustration: "japan",
@@ -265,7 +266,7 @@ export default function Home() {
                 <div>
                   <strong>{japan.name}</strong>
                   <span>{japan.dates}</span>
-                  <small>{activeTrip ? `${activeTrip.draft.startingPlace} → ${activeTrip.draft.endingPlace}` : "Your journey begins here"}</small>
+                  <small>{activeTrip ? `${activeTrip.metadata.startingPlace} → ${activeTrip.metadata.endingPlace}` : "Your journey begins here"}</small>
                 </div>
                 <JourneyIllustration kind="japan" />
               </div>

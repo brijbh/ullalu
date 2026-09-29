@@ -1,25 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import { BottomNav } from "../components/JourneyUI";
-import { DEFAULT_DRAFT, getDraft, type TripDraft } from "../lib/tripSession";
+import { type SavedTrip } from "../lib/tripSession";
+import { exportTrip, getActiveTrip, importTrip } from "../lib/tripStore";
 
 export default function MorePage() {
-  const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
+  const router = useRouter();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [trip, setTrip] = useState<SavedTrip | null>(null);
+  const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    setDraft(getDraft());
-  }, []);
+  useEffect(() => { getActiveTrip().then((value) => setTrip(value ?? null)).catch((error) => setMessage(String(error))); }, []);
 
-  const storageLabel =
-    draft.storage === "cloud"
-      ? "Ullalu Cloud · paid"
-      : draft.storage === "device"
-        ? "This device"
-        : "Google Drive";
+  async function handleImport(file?: File) {
+    if (!file) return;
+    try {
+      const imported = await importTrip(file);
+      setTrip(imported);
+      router.push(`/trip/${encodeURIComponent(imported.id)}`);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Could not import this trip."); }
+    if (fileInput.current) fileInput.current.value = "";
+  }
 
   return (
     <main className={styles.screen}>
@@ -36,23 +42,31 @@ export default function MorePage() {
           </div>
 
           <div className={styles.moreList}>
-            <Link className={styles.moreRow} href="/new-trip/storage">
-              <span className={styles.moreRowIcon} aria-hidden="true">{draft.storage === "device" ? "▣" : "☁"}</span>
+            <div className={styles.moreRow}>
+              <span className={styles.moreRowIcon} aria-hidden="true">▣</span>
               <span>
                 <strong>Trip storage</strong>
-                <span>{storageLabel}</span>
-              </span>
-              <span aria-hidden="true">›</span>
-            </Link>
-
-            <div className={styles.moreRow}>
-              <span className={styles.moreRowIcon} aria-hidden="true">⇩</span>
-              <span>
-                <strong>Export & backup</strong>
-                <span>.ullalu export will be connected with persistence</span>
+                <span>This device · saved offline</span>
               </span>
               <span aria-hidden="true">›</span>
             </div>
+
+            <button className={styles.moreRow} type="button" disabled={!trip} onClick={() => trip && exportTrip(trip)}>
+              <span className={styles.moreRowIcon} aria-hidden="true">⇩</span>
+              <span>
+                <strong>Export & backup</strong>
+                <span>{trip ? `Download ${trip.metadata.name} as .ullalu` : "Create a trip to export it"}</span>
+              </span>
+              <span aria-hidden="true">›</span>
+            </button>
+
+            <button className={styles.moreRow} type="button" onClick={() => fileInput.current?.click()}>
+              <span className={styles.moreRowIcon} aria-hidden="true">⇧</span>
+              <span><strong>Import trip</strong><span>Open a .ullalu backup on this device</span></span>
+              <span aria-hidden="true">›</span>
+            </button>
+            <input ref={fileInput} type="file" accept=".ullalu,application/json" hidden aria-label="Choose Ullalu trip file" onChange={(event) => void handleImport(event.target.files?.[0])} />
+            {message ? <p role="alert">{message}</p> : null}
 
             <div className={styles.moreRow}>
               <span className={styles.moreRowIcon} aria-hidden="true">🔒</span>
@@ -67,7 +81,7 @@ export default function MorePage() {
               <span className={styles.moreRowIcon} aria-hidden="true">◉</span>
               <span>
                 <strong>Offline cache</strong>
-                <span>Keep the active trip available while travelling</span>
+                <span>Trip and app shell available after your first online visit</span>
               </span>
               <span aria-hidden="true">›</span>
             </div>
@@ -83,9 +97,9 @@ export default function MorePage() {
           </div>
 
           <section className={styles.completedPanel}>
-            <h2>Current draft</h2>
-            <p><strong>{draft.name || "Untitled trip"}</strong></p>
-            <p>{draft.startingPlace || "Starting place"} → {draft.endingPlace || "Ending place"}</p>
+            <h2>Active trip</h2>
+            <p><strong>{trip?.metadata.name || "No trip yet"}</strong></p>
+            <p>{trip ? `${trip.metadata.startingPlace} → ${trip.metadata.endingPlace}` : "Create or import a trip"}</p>
           </section>
           <p className={styles.weatherAttribution}>Current weather data: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo</a></p>
         </div>

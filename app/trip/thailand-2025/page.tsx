@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
 import { ActionGlyph, AppHeader, BottomNav, Signature, TripArt, sampleSignature } from "../../components/JourneyUI";
-import { DEFAULT_DRAFT, saveDraft } from "../../lib/tripSession";
+import { DEFAULT_DRAFT, } from "../../lib/tripSession";
+import { saveDraft } from "../../lib/tripStore";
 
 type CompletedTab = "overview" | "days" | "photos" | "questions";
 
@@ -57,8 +58,8 @@ export default function ThailandTripPage() {
     showToast("Trip link copied");
   }
 
-  function reuseTrip() {
-    saveDraft({
+  async function reuseTrip() {
+    await saveDraft({
       ...DEFAULT_DRAFT,
       name: "Thailand — adapted trip",
       startDate: "",

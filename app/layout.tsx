@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./expansion-fix.css";
 import "./day-note.css";
+import OfflineRegistration from "./components/OfflineRegistration";
 
 export const metadata: Metadata = {
   title: "Ullalu",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body><OfflineRegistration />{children}</body>
     </html>
   );
 }

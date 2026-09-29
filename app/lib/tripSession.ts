@@ -7,7 +7,6 @@ export type TripDraft = {
   startingPlace: string;
   endingPlace: string;
   returnToStart: boolean;
-  storage?: "drive" | "cloud" | "device";
 };
 
 export type PlannerSegment = DayCardSegment & {
@@ -21,6 +20,7 @@ export type PlannerDay = {
   subtitle: string;
   planned: boolean;
   segments: PlannerSegment[];
+  calculatedFreeTime: PlannerSegment[];
   note?: string;
 };
 
@@ -31,12 +31,11 @@ export const DEFAULT_DRAFT: TripDraft = {
   startingPlace: "",
   endingPlace: "",
   returnToStart: false,
-  storage: "device",
 };
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-function toDateInputValue(value: string) {
+export function toDateInputValue(value: string) {
   if (!value || /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
   const match = value.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
   if (!match) return "";
@@ -50,20 +49,6 @@ export function formatTripDate(value: string) {
   if (!match) return value;
   const month = monthNames[Number(match[2]) - 1];
   return month ? `${Number(match[3])} ${month} ${match[1]}` : value;
-}
-
-const DRAFT_KEY = "ullalu:draft-trip";
-
-export function getDraft(): TripDraft {
-  if (typeof window === "undefined") return DEFAULT_DRAFT;
-  try {
-    const draft = { ...DEFAULT_DRAFT, ...JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "{}") } as TripDraft;
-    return { ...draft, startDate: toDateInputValue(draft.startDate), endDate: toDateInputValue(draft.endDate) };
-  } catch { return DEFAULT_DRAFT; }
-}
-
-export function saveDraft(draft: TripDraft) {
-  if (typeof window !== "undefined") sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
 }
 
 export function iconForKind(kind: DayCardSegmentKind) {
@@ -80,7 +65,7 @@ export function parseClockMinutes(value: string) {
   if (!match) return null;
   const hours = Number(match[1]);
   const minutes = Number(match[2]);
-  if (hours > 23 || minutes > 59) return null;
+  if (hours > 24 || (hours === 24 && minutes !== 0) || minutes > 59) return null;
   return hours * 60 + minutes;
 }
 
@@ -244,9 +229,23 @@ export function signatureFromSegments(segments: PlannerSegment[]) {
   return segments.map((segment) => ({ kind: segment.kind, flex: Math.max(.2, segment.weight ?? 1) }));
 }
 
-export type SavedTrip = { id: string; draft: TripDraft; days: PlannerDay[] };
-const TRIPS_KEY = "ullalu:trips";
-const ACTIVE_TRIP_KEY = "ullalu:active-trip";
+export type TripReference = { id: string; kind: "photo" | "link" | "file"; title: string; uri: string; note?: string };
+export type TripReservation = { id: string; title: string; confirmation?: string; itemId?: string; day?: number; note?: string; references: TripReference[] };
+export type TripAlert = { id: string; level: "info" | "warning" | "urgent"; message: string; day?: number; itemId?: string; dismissed?: boolean };
+export type TripNote = { id: string; text: string; day?: number; itemId?: string };
+export type SavedTrip = {
+  format: "ullalu.trip";
+  version: 1;
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  metadata: TripDraft;
+  days: PlannerDay[];
+  notes: TripNote[];
+  reservations: TripReservation[];
+  references: TripReference[];
+  alerts: TripAlert[];
+};
 const DAY_MS = 86_400_000;
 
 function dateMillis(value: string) {
@@ -282,40 +281,28 @@ export function createTripDays(draft: TripDraft): PlannerDay[] {
     subtitle: "",
     planned: false,
     segments: [],
+    calculatedFreeTime: [],
   }));
 }
 
-export function getTrips(): SavedTrip[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const trips = JSON.parse(localStorage.getItem(TRIPS_KEY) || "[]") as SavedTrip[];
-    return Array.isArray(trips) ? trips.filter((trip) => trip.id && trip.draft && Array.isArray(trip.days)) : [];
-  } catch { return []; }
+export function randomSuffix() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(4)), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export function getTrip(id: string) {
-  return getTrips().find((trip) => trip.id === id);
-}
-
-export function getActiveTrip() {
-  if (typeof window === "undefined") return undefined;
-  return getTrip(localStorage.getItem(ACTIVE_TRIP_KEY) || "") ?? getTrips().at(-1);
-}
-
-export function createTrip(draft: TripDraft): SavedTrip {
+export function createTripDocument(draft: TripDraft): SavedTrip {
   const days = createTripDays(draft);
   const slug = draft.name.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "trip";
-  const id = `${slug}-${crypto.randomUUID().slice(0, 8)}`;
-  const trip = { id, draft, days };
-  localStorage.setItem(TRIPS_KEY, JSON.stringify([...getTrips(), trip]));
-  localStorage.setItem(ACTIVE_TRIP_KEY, id);
-  return trip;
+  const now = new Date().toISOString();
+  return {
+    format: "ullalu.trip", version: 1, id: `${slug}-${randomSuffix()}`,
+    createdAt: now, updatedAt: now, metadata: draft, days,
+    notes: [], reservations: [], references: [], alerts: [],
+  };
 }
 
-export function saveTrip(trip: SavedTrip) {
-  localStorage.setItem(TRIPS_KEY, JSON.stringify(getTrips().map((item) => item.id === trip.id ? trip : item)));
-  localStorage.setItem(ACTIVE_TRIP_KEY, trip.id);
+export function calculatedFreeTime(day: PlannerDay) {
+  return withCalculatedFreeTime(day.segments).filter((item) => item.kind === "free");
 }
 
 export function tripDayPath(id: string, day: number) {

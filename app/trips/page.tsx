@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
-import { formatTripDate, getTrips, type SavedTrip } from "../lib/tripSession";
+import { formatTripDate, type SavedTrip } from "../lib/tripSession";
+import { getTrips } from "../lib/tripStore";
 import { ActionGlyph, BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
 
 type TripTab = "planning" | "upcoming" | "completed";
@@ -26,14 +27,14 @@ const completed = [
 export default function TripsPage() {
   const [tab, setTab] = useState<TripTab>("planning");
   const [savedTrips, setSavedTrips] = useState<SavedTrip[]>([]);
-  useEffect(() => { setSavedTrips(getTrips()); }, []);
+  useEffect(() => { getTrips().then(setSavedTrips); }, []);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
 
   const q = query.trim().toLowerCase();
 
   const planningRows = useMemo(() => planning.filter(([name]) => !q || name.toLowerCase().includes(q)), [q]);
-  const savedRows = useMemo(() => savedTrips.filter((trip) => !q || trip.draft.name.toLowerCase().includes(q)), [savedTrips, q]);
+  const savedRows = useMemo(() => savedTrips.filter((trip) => !q || trip.metadata.name.toLowerCase().includes(q)), [savedTrips, q]);
   const upcomingRows = useMemo(() => upcoming.filter(([name]) => !q || name.toLowerCase().includes(q)), [q]);
   const completedRows = useMemo(() => completed.filter(([name]) => !q || name.toLowerCase().includes(q)), [q]);
 
@@ -75,8 +76,8 @@ export default function TripsPage() {
               {savedRows.map((trip) => (
                 <Link href={`/trip/${trip.id}`} className={`${styles.libraryCard} ${parity.completedLibraryCard}`} key={trip.id}>
                   <div className={parity.libraryCopy}>
-                    <strong>{trip.draft.name}</strong>
-                    <span>{formatTripDate(trip.draft.startDate)} – {formatTripDate(trip.draft.endDate)}</span>
+                    <strong>{trip.metadata.name}</strong>
+                    <span>{formatTripDate(trip.metadata.startDate)} – {formatTripDate(trip.metadata.endDate)}</span>
                     <small>{trip.days.filter((day) => day.planned).length} of {trip.days.length} days planned</small>
                   </div>
                 </Link>

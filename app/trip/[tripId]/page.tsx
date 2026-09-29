@@ -6,12 +6,13 @@ import { useParams } from "next/navigation";
 import styles from "../../JourneyFlow.module.css";
 import parity from "../../JourneyParity.module.css";
 import { AppHeader, BottomNav, Signature } from "../../components/JourneyUI";
-import { formatTripDate, getTrip, signatureFromSegments, tripDayPath, type SavedTrip } from "../../lib/tripSession";
+import { formatTripDate, signatureFromSegments, tripDayPath, type SavedTrip } from "../../lib/tripSession";
+import { exportTrip, getTrip } from "../../lib/tripStore";
 
 export default function TripOverviewPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const [trip, setTrip] = useState<SavedTrip | null>(null);
-  useEffect(() => { setTrip(getTrip(tripId) ?? null); }, [tripId]);
+  useEffect(() => { getTrip(tripId).then((trip) => setTrip(trip ?? null)); }, [tripId]);
   const days = trip?.days ?? [];
   const planned = useMemo(() => days.filter((day) => day.planned).length, [days]);
   const nextDay = days.find((day) => !day.planned)?.day ?? days.at(-1)?.day ?? 1;
@@ -22,12 +23,12 @@ export default function TripOverviewPage() {
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader backHref="/trips" note={trip.draft.endingPlace} />
+          <AppHeader backHref="/trips" note={trip.metadata.endingPlace} />
           <div className={`${styles.tripHead} ${parity.tripHeadIllustrated}`}>
             <div>
-              <h1>{trip.draft.name}</h1>
-              <p>{formatTripDate(trip.draft.startDate)} – {formatTripDate(trip.draft.endDate)}</p>
-              <p>{trip.draft.startingPlace} → {trip.draft.endingPlace}</p>
+              <h1>{trip.metadata.name}</h1>
+              <p>{formatTripDate(trip.metadata.startDate)} – {formatTripDate(trip.metadata.endDate)}</p>
+              <p>{trip.metadata.startingPlace} → {trip.metadata.endingPlace}</p>
             </div>
           </div>
           <div className={styles.overviewStats}>
@@ -43,6 +44,7 @@ export default function TripOverviewPage() {
           <div className={styles.overviewActions}>
             <Link href={tripDayPath(trip.id, nextDay)}>Continue Day {nextDay}</Link>
             <Link href={`/today?trip=${encodeURIComponent(trip.id)}`}>View live day</Link>
+            <button type="button" onClick={() => exportTrip(trip)}>Export .ullalu backup</button>
           </div>
           <div className={styles.daysList}>
             {days.map((day) => (

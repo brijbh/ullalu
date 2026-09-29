@@ -7,8 +7,6 @@ import styles from "../../../../JourneyFlow.module.css";
 import DayCard, { type DayCardSegmentKind, type DayNavigationItem } from "../../../../components/DayCard";
 import { AppHeader, BottomNav, SuggestionIcon } from "../../../../components/JourneyUI";
 import {
-  getTrip,
-  saveTrip,
   tripDayPath,
   type SavedTrip,
   durationLabel,
@@ -22,6 +20,7 @@ import {
   type PlannerDay,
   type PlannerSegment,
 } from "../../../../lib/tripSession";
+import { getTrip, saveTrip } from "../../../../lib/tripStore";
 
 const itemTypes = [
   ["place", "Place / Activity", "Add somewhere you want to spend time", "activity"],
@@ -64,8 +63,9 @@ export default function DayComposerPage() {
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [editorError, setEditorError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => { setTrip(getTrip(params.tripId) ?? null); }, [params.tripId]);
+  useEffect(() => { getTrip(params.tripId).then((trip) => setTrip(trip ?? null)); }, [params.tripId]);
   useEffect(() => {
     setSelectedSegmentId(undefined);
     setEditor(null);
@@ -73,7 +73,7 @@ export default function DayComposerPage() {
     addDialogRef.current?.close();
   }, [params.dayNumber]);
 
-  const currentDay = days[dayIndex] ?? { day: dayIndex + 1, date: "", route: "", subtitle: "", planned: false, segments: [] };
+  const currentDay = days[dayIndex] ?? { day: dayIndex + 1, date: "", route: "", subtitle: "", planned: false, segments: [], calculatedFreeTime: [] };
   const segments = useMemo(
     () => sortPlannerSegments(currentDay.segments.filter((segment) => segment.kind !== "free")),
     [currentDay.segments],
@@ -109,8 +109,7 @@ export default function DayComposerPage() {
 
     const updatedTrip = { ...trip!, days: updatedDays };
     setTrip(updatedTrip);
-    saveTrip(updatedTrip);
-    flashSaved();
+    saveTrip(updatedTrip).then(flashSaved).catch((error) => setSaveError(String(error)));
   }
 
   function updateDayNote(note: string) {
@@ -119,8 +118,7 @@ export default function DayComposerPage() {
     ));
     const updatedTrip = { ...trip!, days: updatedDays };
     setTrip(updatedTrip);
-    saveTrip(updatedTrip);
-    flashSaved();
+    saveTrip(updatedTrip).then(flashSaved).catch((error) => setSaveError(String(error)));
   }
 
   function openAddDialog() {
@@ -230,14 +228,14 @@ export default function DayComposerPage() {
     <main className={styles.screen}>
       <section className={styles.phonePage}>
         <div className={styles.content}>
-          <AppHeader backHref={`/trip/${trip?.id}`} note={trip?.draft.endingPlace} />
+          <AppHeader backHref={`/trip/${trip?.id}`} note={trip?.metadata.endingPlace} />
 
           <div className={styles.tripHead}>
             <div>
-              <h1>{trip?.draft.name}</h1>
+              <h1>{trip?.metadata.name}</h1>
               <p>Build Day {currentDay.day} · {currentDay.date}</p>
             </div>
-            {saved ? <span className={styles.savedPill}>Saved</span> : null}
+            {saveError ? <span role="alert">Could not save: {saveError}</span> : saved ? <span className={styles.savedPill}>Saved</span> : null}
           </div>
 
           <div className={styles.composerCardWrap}>

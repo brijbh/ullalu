@@ -1957,3 +1957,18 @@
   justify-content: center;
   text-decoration: none;
 }
+
+.moreRow:is(button) {
+  width: 100%;
+  background: transparent;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.moreRow:is(button):disabled { opacity: .55; cursor: default; }
+.moreRow:is(button):focus-visible { outline: 2px solid #32699f; outline-offset: -2px; }
+.storageOption:disabled { opacity: .55; cursor: default; }
+.storageOption:disabled:hover { border-color: #d2d8df; background: rgba(255,255,255,.72); }

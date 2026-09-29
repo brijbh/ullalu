@@ -5,7 +5,8 @@ import Link from "next/link";
 import styles from "../JourneyFlow.module.css";
 import parity from "../JourneyParity.module.css";
 import { BottomNav, Signature, TripArt, sampleSignature } from "../components/JourneyUI";
-import { DEFAULT_DRAFT, saveDraft } from "../lib/tripSession";
+import { DEFAULT_DRAFT, } from "../lib/tripSession";
+import { saveDraft } from "../lib/tripStore";
 
 const itineraries = [
   {
@@ -34,8 +35,8 @@ const itineraries = [
 export default function ExplorePage() {
   const router = useRouter();
 
-  function useItinerary(destination: string, title: string) {
-    saveDraft({
+  async function useItinerary(destination: string, title: string) {
+    await saveDraft({
       ...DEFAULT_DRAFT,
       name: `${title} — copy`,
       startDate: "",

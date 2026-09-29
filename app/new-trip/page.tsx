@@ -4,14 +4,15 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../JourneyFlow.module.css";
 import { AppHeader, BottomNav, MountainFooter } from "../components/JourneyUI";
-import { DEFAULT_DRAFT, getDraft, saveDraft, type TripDraft } from "../lib/tripSession";
+import { DEFAULT_DRAFT, type TripDraft } from "../lib/tripSession";
+import { getDraft, saveDraft } from "../lib/tripStore";
 
 export default function NewTripPage() {
   const router = useRouter();
   const [draft, setDraft] = useState<TripDraft>(DEFAULT_DRAFT);
 
   useEffect(() => {
-    setDraft(getDraft());
+    getDraft().then(setDraft);
   }, []);
 
   function update<K extends keyof TripDraft>(key: K, value: TripDraft[K]) {
@@ -26,10 +27,10 @@ export default function NewTripPage() {
     }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (draft.endDate < draft.startDate) return;
-    saveDraft(draft);
+    await saveDraft(draft);
     router.push("/new-trip/storage");
   }
 
